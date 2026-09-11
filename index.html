@@ -32,13 +32,56 @@
             border: 4px solid #333;
             border-radius: 8px;
             overflow: hidden;
+            max-width: 100vw;
+            max-height: 85vh;
         }
         canvas {
             display: block;
             background: linear-gradient(to bottom, #151528 0%, #111936 50%, #0c2b50 50%, #15385c 100%);
+            width: 100%;
+            height: auto;
         }
         
-        /* Controles táctiles en pantalla para móviles */
+        /* Pantalla de inicio para forzar pantalla completa y audio */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 6, 8, 0.95);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        #start-screen h2 {
+            color: #ff5722;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+        }
+        #start-screen p {
+            color: #ccc;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            max-width: 300px;
+        }
+        .start-btn {
+            background: #ff5722;
+            color: white;
+            border: 2px solid #ffb74d;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
+        }
+
+        /* Controles táctiles optimizados */
         .touch-controls {
             position: absolute;
             bottom: 0;
@@ -50,10 +93,10 @@
         }
         .touch-pad {
             position: absolute;
-            left: 20px;
-            bottom: 20px;
-            width: 130px;
-            height: 130px;
+            left: 15px;
+            bottom: 15px;
+            width: 120px;
+            height: 120px;
             background: rgba(255, 255, 255, 0.08);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
@@ -62,28 +105,26 @@
         }
         .touch-stick {
             position: absolute;
-            top: 40px;
-            left: 40px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 87, 34, 0.6);
+            top: 35px;
+            left: 35px;
+            width: 46px;
+            height: 46px;
+            background: rgba(255, 87, 34, 0.65);
             border: 2px solid #ffb74d;
             border-radius: 50%;
             pointer-events: none;
             transform: translate(0, 0);
-            transition: transform 0.05s linear;
         }
         .touch-buttons {
             position: absolute;
-            right: 20px;
-            bottom: 20px;
-            width: 160px;
-            height: 140px;
+            right: 15px;
+            bottom: 15px;
+            width: 170px;
+            height: 170px;
             pointer-events: auto;
         }
         .t-btn {
             position: absolute;
-            background: rgba(255, 87, 34, 0.45);
             border: 2px solid #ffb74d;
             color: white;
             font-weight: bold;
@@ -95,27 +136,10 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             touch-action: none;
         }
-        #btn-pina { width: 50px; height: 50px; bottom: 10px; left: 10px; }
-        #btn-botella { width: 50px; height: 50px; bottom: 65px; left: 55px; }
-        #btn-patada { width: 50px; height: 50px; bottom: 10px; right: 10px; }
-        #btn-especial { width: 54px; height: 54px; top: 5px; right: 55px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; }
-
-        /* Botón de Pantalla Completa flotante */
-        #fullscreen-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(15, 15, 25, 0.8);
-            border: 2px solid #ff5722;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 50;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
+        #btn-pina { width: 52px; height: 52px; bottom: 10px; left: 10px; background: rgba(255, 87, 34, 0.5); }
+        #btn-botella { width: 52px; height: 52px; bottom: 68px; left: 58px; background: rgba(255, 152, 0, 0.5); }
+        #btn-patada { width: 52px; height: 52px; bottom: 10px; right: 10px; background: rgba(33, 150, 243, 0.5); border-color: #90caf9; }
+        #btn-especial { width: 56px; height: 56px; top: 10px; right: 65px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; font-size: 0.7rem; }
 
         .arcade-controls {
             position: absolute;
@@ -205,9 +229,15 @@
     </div>
 
     <h1>Beat 'em Up - Gusty vs Hinchas</h1>
-    <div class="game-container">
+    <div class="game-container" id="gameContainer">
+        <!-- Pantalla de inicio integrada que fuerza pantalla completa -->
+        <div id="start-screen">
+            <h2>GUSTY VS HINCHAS</h2>
+            <p>Toca el botón para iniciar la partida en pantalla completa y con sonido.</p>
+            <button class="start-btn" id="start-game-btn">¡JUGAR AHORA!</button>
+        </div>
+
         <canvas id="gameCanvas" width="800" height="450"></canvas>
-        <button id="fullscreen-btn">⛶ Pantalla Completa</button>
         
         <!-- Controles para PC -->
         <div class="arcade-controls" id="keyboard-controls-ui">
@@ -227,7 +257,7 @@
             </div>
         </div>
 
-        <!-- Controles Táctiles para Celulares (Analógico izq + Botones der) -->
+        <!-- Controles Táctiles para Celulares -->
         <div class="touch-controls" id="touch-controls-ui">
             <div class="touch-pad" id="touchPad">
                 <div class="touch-stick" id="touchStick"></div>
@@ -245,6 +275,7 @@
         let audioCtx = null;
         let musicTimer = null;
         let musicNoteIndex = 0;
+        let gameStarted = false;
 
         function initAudio() {
             if (!audioCtx) {
@@ -357,7 +388,7 @@
             ];
 
             musicTimer = setInterval(() => {
-                if (!audioCtx || isGameOver) return;
+                if (!audioCtx || isGameOver || !gameStarted) return;
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'square';
@@ -383,7 +414,7 @@
             const controlsUI = document.getElementById("keyboard-controls-ui");
             const touchUI = document.getElementById("touch-controls-ui");
 
-            if (isMobile) {
+            if (isMobile && gameStarted) {
                 if (controlsUI) controlsUI.style.display = "none";
                 if (touchUI) touchUI.style.display = "block";
             }
@@ -403,30 +434,30 @@
         document.getElementById("skip-rotate-btn").addEventListener("click", () => {
             userSkippedRotate = true;
             document.getElementById("rotate-overlay").style.display = "none";
-            initAudio();
         });
 
-        // Pantalla completa
-        document.getElementById("fullscreen-btn").addEventListener("click", () => {
+        // Botón de inicio que lanza la pantalla completa real
+        document.getElementById("start-game-btn").addEventListener("click", () => {
+            gameStarted = true;
             initAudio();
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log("Error al intentar pantalla completa:", err);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+            document.getElementById("start-screen").style.display = "none";
+
+            // Intentar poner en pantalla completa el contenedor o la página
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else if (document.documentElement.webkitRequestFullscreen) {
+                document.documentElement.webkitRequestFullscreen();
             }
+
+            checkScreenOrientation();
+            initGame();
         });
 
-        // Lógica del Stick Analógico Táctil
         const touchPad = document.getElementById("touchPad");
         const touchStick = document.getElementById("touchStick");
         let stickTouchId = null;
 
         touchPad.addEventListener("touchstart", (e) => {
-            initAudio();
             const touch = e.changedTouches[0];
             stickTouchId = touch.identifier;
             updateStick(touch);
@@ -466,7 +497,7 @@
             let dx = touch.clientX - centerX;
             let dy = touch.clientY - centerY;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxRadius = 40;
+            const maxRadius = 35;
 
             if (distance > maxRadius) {
                 dx = (dx / distance) * maxRadius;
@@ -475,18 +506,17 @@
 
             touchStick.style.transform = `translate(${dx}px, ${dy}px)`;
 
-            keys["ArrowLeft"] = dx < -12;
-            keys["ArrowRight"] = dx > 12;
-            keys["ArrowUp"] = dy < -12;
-            keys["ArrowDown"] = dy > 12;
+            keys["ArrowLeft"] = dx < -10;
+            keys["ArrowRight"] = dx > 10;
+            keys["ArrowUp"] = dy < -10;
+            keys["ArrowDown"] = dy > 10;
         }
 
-        // Botones de acción táctiles derechos
         function setupTouchButton(id, code, actionCallback) {
             const btn = document.getElementById(id);
+            if(!btn) return;
             btn.addEventListener("touchstart", (e) => {
                 e.preventDefault();
-                initAudio();
                 keys[code] = true;
                 if (actionCallback && !isGameOver) actionCallback();
             });
@@ -524,7 +554,6 @@
             checkAttackSpecial(130, 70, 220);
         });
 
-        // Imágenes del juego
         const bgImage = new Image();
         bgImage.src = "fondo.png";
 
@@ -661,7 +690,6 @@
 
         const keys = {};
         window.addEventListener("keydown", (e) => {
-            initAudio();
             const code = e.code;
             keys[code] = true;
 
@@ -669,7 +697,7 @@
                 e.preventDefault();
             }
 
-            if (isGameOver) return;
+            if (isGameOver || !gameStarted) return;
             if (player.action !== "normal" && player.action !== "camina") return;
 
             if (code === "KeyA") {
@@ -700,7 +728,6 @@
         });
 
         canvas.addEventListener("click", (e) => {
-            initAudio();
             if (!isGameOver) return;
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
@@ -761,7 +788,7 @@
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            if (isGameOver) return;
+            if (isGameOver || !gameStarted) return;
 
             spawnTimer += deltaTime;
             if (spawnTimer >= spawnInterval) {
@@ -1100,7 +1127,6 @@
 
         window.onload = () => {
             checkScreenOrientation();
-            initGame();
             requestAnimationFrame(gameLoop);
         };
     </script>
