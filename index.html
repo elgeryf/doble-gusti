@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Beat 'em Up - Gusty vs Hinchas</title>
     <style>
+        /* --- Estilos Base y Generales --- */
         body {
             background-color: #040406;
             color: #fff;
@@ -20,8 +21,8 @@
             touch-action: none;
         }
         h1 {
-            margin: 0 0 5px 0;
-            font-size: 1.1rem;
+            margin: 0 0 2px 0;
+            font-size: 1rem;
             letter-spacing: 2px;
             color: #ff5722;
             text-transform: uppercase;
@@ -34,204 +35,165 @@
             overflow: hidden;
             max-width: 100vw;
             max-height: 85vh;
+            aspect-ratio: 800 / 450; /* Mantiene la proporción del canvas */
+            background: #000;
         }
         canvas {
             display: block;
-            background: linear-gradient(to bottom, #151528 0%, #111936 50%, #0c2b50 50%, #15385c 100%);
             width: 100%;
-            height: auto;
+            height: 100%;
         }
         
-        /* Pantalla de bienvenida mejorada */
-        #start-screen {
+        /* --- Pantallas de Menú (Inicio y Game Over) --- */
+        .menu-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(20,20,35,0.95) 0%, rgba(5,5,10,0.98) 100%);
+            background: radial-gradient(circle, rgba(20,20,35,0.98) 0%, rgba(5,5,10,1) 100%);
             z-index: 100;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
+            box-sizing: border-box;
         }
-        #start-screen h2 {
+        .menu-screen h2 {
             color: #ff5722;
-            font-size: 2.2rem;
-            margin: 0 0 10px 0;
-            text-shadow: 0 4px 10px rgba(255,87,34,0.4);
-            letter-spacing: 3px;
+            font-size: 2rem;
+            margin: 0 0 5px 0;
+            text-shadow: 0 3px 8px rgba(255,87,34,0.5);
+            letter-spacing: 2px;
         }
-        #start-screen .subtitle {
+        .menu-screen .subtitle {
             color: #ffb74d;
-            font-size: 1rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
+            margin-bottom: 15px;
         }
-        #start-screen p {
+        .menu-screen p {
             color: #aaa;
-            font-size: 0.95rem;
-            margin-bottom: 30px;
-            max-width: 380px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
             line-height: 1.4;
+            max-width: 350px;
         }
-        .start-btn {
+
+        /* Tabla de Récords CSS */
+        .high-scores-table {
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .high-scores-table th, .high-scores-table td {
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .high-scores-table th { color: #ffb74d; background: rgba(0,0,0,0.2); }
+        .high-scores-table td.rank { color: #ff5722; font-weight: bold; width: 30px; }
+        .high-scores-table td.score { color: #fff; text-align: right; font-family: monospace; }
+        .high-scores-table tr:last-child td { border-bottom: none; }
+
+        /* Input para nombre */
+        #playerNameInput {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #555;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 15px;
+            width: 200px;
+            font-family: inherit;
+        }
+        #playerNameInput:focus { outline: none; border-color: #ff5722; }
+
+        /* Botones de menú */
+        .menu-btn {
             background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
             color: white;
             border: 2px solid #ffb74d;
-            padding: 16px 32px;
-            font-size: 1.1rem;
+            padding: 12px 28px;
+            font-size: 1rem;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+            transition: transform 0.1s ease;
+            margin: 5px;
+            font-family: inherit;
         }
-        .start-btn:active {
-            transform: scale(0.96);
-        }
+        .menu-btn:active { transform: scale(0.96); }
+        .menu-btn:disabled { background: #555; border-color: #777; color: #ccc; cursor: not-allowed; box-shadow: none;}
 
+
+        /* --- Controles Táctiles (Mismo diseño) --- */
         .touch-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: none;
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: none; z-index: 50;
         }
         .touch-pad {
-            position: absolute;
-            left: 15px;
-            bottom: 15px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            pointer-events: auto;
-            touch-action: none;
+            position: absolute; left: 15px; bottom: 15px; width: 110px; height: 110px;
+            background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%; pointer-events: auto; touch-action: none;
         }
         .touch-stick {
-            position: absolute;
-            top: 35px;
-            left: 35px;
-            width: 46px;
-            height: 46px;
-            background: rgba(255, 87, 34, 0.65);
-            border: 2px solid #ffb74d;
-            border-radius: 50%;
-            pointer-events: none;
-            transform: translate(0, 0);
+            position: absolute; top: 32px; left: 32px; width: 46px; height: 46px;
+            background: rgba(255, 87, 34, 0.65); border: 2px solid #ffb74d;
+            border-radius: 50%; pointer-events: none; transform: translate(0, 0);
         }
-        
         .touch-buttons {
-            position: absolute;
-            right: 15px;
-            bottom: 10px;
-            width: 210px;
-            height: 170px;
+            position: absolute; right: 15px; bottom: 10px; width: 200px; height: 160px;
             pointer-events: auto;
         }
         .t-btn {
-            position: absolute;
-            border: 2px solid #ffb74d;
-            color: white;
-            font-weight: bold;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            touch-action: none;
+            position: absolute; border: 2px solid #ffb74d; color: white; font-weight: bold;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); touch-action: none;
         }
-        
-        #btn-pina { width: 48px; height: 48px; bottom: 50px; left: 10px; background: rgba(255, 87, 34, 0.6); }
-        #btn-botella { width: 48px; height: 48px; bottom: 5px; left: 60px; background: rgba(255, 152, 0, 0.6); }
-        #btn-patada { width: 48px; height: 48px; bottom: 50px; right: 10px; background: rgba(33, 150, 243, 0.6); border-color: #90caf9; }
-        #btn-especial { width: 52px; height: 52px; top: 5px; left: 78px; background: rgba(233, 30, 99, 0.7); border-color: #ff80ab; font-size: 0.6rem; }
+        #btn-pina { width: 46px; height: 46px; bottom: 48px; left: 10px; background: rgba(255, 87, 34, 0.6); }
+        #btn-botella { width: 46px; height: 46px; bottom: 2px; left: 58px; background: rgba(255, 152, 0, 0.6); }
+        #btn-patada { width: 46px; height: 46px; bottom: 48px; right: 10px; background: rgba(33, 150, 243, 0.6); border-color: #90caf9; }
+        #btn-especial { width: 50px; height: 50px; top: 2px; left: 75px; background: rgba(233, 30, 99, 0.7); border-color: #ff80ab; font-size: 0.6rem; }
 
+        /* --- Controles Teclado (Mismo diseño) --- */
         .arcade-controls {
-            position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            opacity: 0.9;
+            position: absolute; bottom: 10px; left: 10px; right: 10px;
+            display: flex; justify-content: space-between; pointer-events: none; opacity: 0.8; z-index: 40;
         }
         .pad-group, .action-group {
-            background: rgba(15, 15, 25, 0.75);
-            padding: 8px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(6px);
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            background: rgba(15, 15, 25, 0.7); padding: 6px 10px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 8px; align-items: center;
         }
         .key-btn {
-            background: linear-gradient(to bottom, #333, #222);
-            color: #fff;
-            border: 2px solid #555;
-            border-bottom: 4px solid #111;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 0.75rem;
-            min-width: 22px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(to bottom, #333, #222); color: #fff; border: 2px solid #555;
+            border-bottom: 4px solid #111; padding: 2px 6px; border-radius: 4px; font-weight: bold;
+            font-size: 0.7rem; min-width: 18px; text-align: center;
         }
-        .key-label {
-            font-size: 0.75rem;
-            color: #ccc;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+        .key-label { font-size: 0.7rem; color: #ccc; letter-spacing: 0.5px; }
 
+        /* --- Overlay de Rotación --- */
         #rotate-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(6, 6, 8, 0.95);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(6, 6, 8, 0.95); z-index: 1000; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
         }
-        #rotate-overlay h2 {
-            color: #ff5722;
-            margin-bottom: 10px;
-            font-size: 1.5rem;
-        }
-        #rotate-overlay p {
-            color: #ccc;
-            font-size: 1rem;
-            margin-bottom: 20px;
-        }
+        #rotate-overlay h2 { color: #ff5722; margin-bottom: 10px; font-size: 1.3rem; }
+        #rotate-overlay p { color: #ccc; font-size: 0.9rem; margin-bottom: 15px; }
         .overlay-btn {
-            background: #ff5722;
-            color: white;
-            border: 2px solid #ffb74d;
-            padding: 10px 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            background: #ff5722; color: white; border: 2px solid #ffb74d; padding: 8px 16px;
+            font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer;
         }
     </style>
 </head>
@@ -243,15 +205,46 @@
         <button class="overlay-btn" id="skip-rotate-btn">OMITIR Y JUGAR</button>
     </div>
 
-    <h1>Beat 'em Up - Gusty vs Hinchas</h1>
+    <h1>Gusty vs Hinchas</h1>
     <div class="game-container" id="gameContainer">
         
-        <!-- Pantalla de Bienvenida solicitada -->
-        <div id="start-screen">
+        <!-- PANTALLA DE INICIO -->
+        <div id="start-screen" class="menu-screen">
             <h2>GUSTY VS HINCHAS</h2>
             <div class="subtitle">Edición Callejera</div>
-            <p>Prepárate para la acción. Entra en modo inmersivo a pantalla completa y enciende el audio para disfrutar la música y los efectos.</p>
-            <button class="start-btn" id="start-game-btn">INICIAR JUEGO EN PANTALLA COMPLETA</button>
+            <p>¡Defiende tu barrio! Usa las flechas o el joystick para moverte. A, S, W, D para golpear.</p>
+            <p style="font-size: 0.8rem; color: #777;">Se recomienda jugar en pantalla completa para mejor experiencia.</p>
+            <button class="menu-btn" id="start-game-btn">¡COMENZAR!</button>
+            
+            <!-- Tabla de records en inicio -->
+            <div style="margin-top: 20px; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                <h3 style="color: #ffb74d; margin: 0 0 5px 0; font-size: 0.9rem;">MEJORES 5 PUNTUACIONES</h3>
+                <table class="high-scores-table" id="startHighScoresList">
+                    <!-- Se llena por JS -->
+                </table>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE GAME OVER (NUEVA) -->
+        <div id="gameover-screen" class="menu-screen" style="display: none;">
+            <h2>¡GAME OVER!</h2>
+            <p style="font-size: 1.2rem; color: #fff;">Has caído en combate.</p>
+            <p>Puntuación Final (Oleada x 100): <strong id="finalScoreText" style="color:#ffb74d; font-size:1.4rem;">0</strong></p>
+            
+            <div id="highscore-form" style="display: none;">
+                <p style="color: #fff; margin-bottom: 8px;">¡Nuevo Récord! Ingresa tu nombre (3 letras):</p>
+                <input type="text" id="playerNameInput" maxlength="3" placeholder="AAA" />
+                <br/>
+                <button class="menu-btn" id="saveScoreBtn">GUARDAR PUNTUACIÓN</button>
+            </div>
+
+            <div id="final-scores-list" style="display: none; width: 100%; flex-direction: column; align-items: center;">
+                <h3 style="color: #ffb74d; margin: 15px 0 5px 0; font-size: 0.9rem;">RANKING</h3>
+                <table class="high-scores-table" id="gameOverHighScoresList">
+                    <!-- Se llena por JS -->
+                </table>
+                <button class="menu-btn" id="restart-game-btn">VOLVER A JUGAR</button>
+            </div>
         </div>
 
         <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -267,937 +260,4 @@
             <div class="action-group">
                 <span class="key-label">Golpes:</span>
                 <span class="key-btn">A</span><span class="key-label">Piña</span>
-                <span class="key-btn">S</span><span class="key-label">Botellazo</span>
-                <span class="key-btn">D</span><span class="key-label">Especial</span>
-                <span class="key-btn">W</span><span class="key-label">Patada</span>
-            </div>
-        </div>
-
-        <div class="touch-controls" id="touch-controls-ui">
-            <div class="touch-pad" id="touchPad">
-                <div class="touch-stick" id="touchStick"></div>
-            </div>
-            <div class="touch-buttons">
-                <div class="t-btn" id="btn-pina">A</div>
-                <div class="t-btn" id="btn-botella">B</div>
-                <div class="t-btn" id="btn-patada">K</div>
-                <div class="t-btn" id="btn-especial">ESP</div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let audioCtx = null;
-        let musicTimer = null;
-        let musicNoteIndex = 0;
-        let gameStarted = false;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            startBGM();
-        }
-
-        const sfx = {
-            pina() {
-                if (!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-            },
-            botella() {
-                if (!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-            },
-            patada() {
-                if (!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.12);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.12);
-            },
-            especial() {
-                if (!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(450, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.25);
-            },
-            beer() {
-                if (!audioCtx) return;
-                const notes = [300, 450, 600, 900];
-                notes.forEach((freq, i) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.06);
-                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.06);
-                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.06 + 0.08);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(audioCtx.currentTime + i * 0.06);
-                    osc.stop(audioCtx.currentTime + i * 0.06 + 0.08);
-                });
-            },
-            gameover() {
-                if (!audioCtx) return;
-                const notes = [300, 260, 220, 160];
-                notes.forEach((freq, i) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.2);
-                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.2);
-                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.2 + 0.25);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(audioCtx.currentTime + i * 0.2);
-                    osc.stop(audioCtx.currentTime + i * 0.2 + 0.25);
-                });
-            }
-        };
-
-        function startBGM() {
-            if (musicTimer) return;
-            const melody = [
-                220, 220, 330, 220, 196, 220, 261, 246,
-                220, 220, 370, 330, 220, 185, 196, 207,
-                220, 220, 330, 220, 196, 261, 293, 330,
-                349, 330, 293, 261, 220, 196, 185, 164
-            ];
-
-            musicTimer = setInterval(() => {
-                if (!audioCtx || isGameOver || !gameStarted) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(melody[musicNoteIndex], audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.15);
-                musicNoteIndex = (musicNoteIndex + 1) % melody.length;
-            }, 180);
-        }
-
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        let userSkippedRotate = false;
-
-        function checkScreenOrientation() {
-            const overlay = document.getElementById("rotate-overlay");
-            const controlsUI = document.getElementById("keyboard-controls-ui");
-            const touchUI = document.getElementById("touch-controls-ui");
-
-            if (isMobile && gameStarted) {
-                if (controlsUI) controlsUI.style.display = "none";
-                if (touchUI) touchUI.style.display = "block";
-            }
-
-            if (isMobile && window.innerHeight > window.innerWidth && !userSkippedRotate) {
-                overlay.style.display = "flex";
-            } else {
-                overlay.style.display = "none";
-            }
-        }
-
-        window.addEventListener("resize", checkScreenOrientation);
-        window.addEventListener("orientationchange", () => {
-            setTimeout(checkScreenOrientation, 200);
-        });
-
-        document.getElementById("skip-rotate-btn").addEventListener("click", () => {
-            userSkippedRotate = true;
-            document.getElementById("rotate-overlay").style.display = "none";
-        });
-
-        // Evento para el botón de bienvenida / pantalla completa
-        document.getElementById("start-game-btn").addEventListener("click", () => {
-            gameStarted = true;
-            initAudio();
-            document.getElementById("start-screen").style.display = "none";
-
-            const container = document.getElementById("gameContainer");
-            if (container.requestFullscreen) {
-                container.requestFullscreen().catch(() => {});
-            } else if (container.webkitRequestFullscreen) {
-                container.webkitRequestFullscreen();
-            } else if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            }
-
-            checkScreenOrientation();
-            initGame();
-        });
-
-        const touchPad = document.getElementById("touchPad");
-        const touchStick = document.getElementById("touchStick");
-        let stickTouchId = null;
-
-        touchPad.addEventListener("touchstart", (e) => {
-            const touch = e.changedTouches[0];
-            stickTouchId = touch.identifier;
-            updateStick(touch);
-        });
-
-        touchPad.addEventListener("touchmove", (e) => {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === stickTouchId) {
-                    updateStick(e.changedTouches[i]);
-                    break;
-                }
-            }
-        });
-
-        function endStickTouch(e) {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === stickTouchId) {
-                    keys["ArrowUp"] = false;
-                    keys["ArrowDown"] = false;
-                    keys["ArrowLeft"] = false;
-                    keys["ArrowRight"] = false;
-                    touchStick.style.transform = `translate(0px, 0px)`;
-                    stickTouchId = null;
-                    break;
-                }
-            }
-        }
-
-        touchPad.addEventListener("touchend", endStickTouch);
-        touchPad.addEventListener("touchcancel", endStickTouch);
-
-        function updateStick(touch) {
-            const rect = touchPad.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxRadius = 35;
-
-            if (distance > maxRadius) {
-                dx = (dx / distance) * maxRadius;
-                dy = (dy / distance) * maxRadius;
-            }
-
-            touchStick.style.transform = `translate(${dx}px, ${dy}px)`;
-
-            keys["ArrowLeft"] = dx < -10;
-            keys["ArrowRight"] = dx > 10;
-            keys["ArrowUp"] = dy < -10;
-            keys["ArrowDown"] = dy > 10;
-        }
-
-        function setupTouchButton(id, code, actionCallback) {
-            const btn = document.getElementById(id);
-            if(!btn) return;
-            btn.addEventListener("touchstart", (e) => {
-                e.preventDefault();
-                keys[code] = true;
-                if (actionCallback && !isGameOver) actionCallback();
-            });
-            btn.addEventListener("touchend", (e) => {
-                e.preventDefault();
-                keys[code] = false;
-            });
-        }
-
-        setupTouchButton("btn-pina", "KeyA", () => {
-            player.action = "pina";
-            player.actionTimer = 15;
-            sfx.pina();
-            checkAttack(80, 50, 45);
-        });
-
-        setupTouchButton("btn-botella", "KeyS", () => {
-            player.action = "botella";
-            player.actionTimer = 20;
-            sfx.botella();
-            checkAttack(90, 55, 90);
-        });
-
-        setupTouchButton("btn-patada", "KeyW", () => {
-            player.action = "patada";
-            player.actionTimer = 20;
-            sfx.patada();
-            checkAttack(95, 60, 110);
-        });
-
-        setupTouchButton("btn-especial", "KeyD", () => {
-            player.action = "especial";
-            player.actionTimer = 25;
-            sfx.especial();
-            checkAttackSpecial(130, 70, 220);
-        });
-
-        const bgImage = new Image();
-        bgImage.src = "fondo.png";
-
-        const lataImage = new Image();
-        lataImage.src = "lata.png";
-
-        const playerSprites = {
-            normal: new Image(),
-            pina:   new Image(),
-            botella: new Image(),
-            especial: new Image(),
-            patada: new Image(),
-            camina: new Image()
-        };
-        playerSprites.normal.src   = "normal.png";
-        playerSprites.pina.src     = "pina.png";
-        playerSprites.botella.src  = "botella.png";
-        playerSprites.especial.src = "especial.png";
-        playerSprites.patada.src   = "patada.png";
-        playerSprites.camina.src   = "caminand.png";
-
-        const npc1Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
-        npc1Sprites.idle.src = "urunormal.png"; npc1Sprites.walk.src = "urucamina.png"; npc1Sprites.hit.src = "urupina.png"; npc1Sprites.hurt.src = "urugolpeado.png"; npc1Sprites.dead.src = "urumuerto.png";
-
-        const npc2Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
-        npc2Sprites.idle.src = "bocanormal.png"; npc2Sprites.walk.src = "bocacorre.png"; npc2Sprites.hit.src = "bocapina.png"; npc2Sprites.hurt.src = "bocapolpeado.png"; npc2Sprites.dead.src = "bocamuerto.png";
-
-        const npc3Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
-        npc3Sprites.idle.src = "mnormal.png"; npc3Sprites.walk.src = "mcaminando.png"; npc3Sprites.hit.src = "mpegando.png"; npc3Sprites.hurt.src = "mrecibiendo.png"; npc3Sprites.dead.src = "mmuerto.png";
-
-        const boss1Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
-        boss1Sprites.idle.src = "rojoparado.png"; boss1Sprites.walk.src = "rojo caminando.png"; boss1Sprites.hit.src = "rojo pegando.png"; boss1Sprites.hurt.src = "rojo recibiendo.png"; boss1Sprites.dead.src = "rojo muerto.png";
-
-        const boss2Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
-        boss2Sprites.idle.src = "boca normal.png"; boss2Sprites.walk.src = "boca camina.png"; boss2Sprites.hit.src = "boca pina.png"; boss2Sprites.hurt.src = "boca golpeado.png"; boss2Sprites.dead.src = "boca muerto.png";
-
-        let enemies = [];
-        let beers = [];
-        let spawnTimer = 0;
-        const spawnInterval = 10000;
-        let waveLevel = 1;
-        let beerSpawnTimer = 0;
-        let nextBeerInterval = Math.random() * 6000 + 12000;
-        let isGameOver = false;
-
-        function spawnEnemyRandomly() {
-            if (isGameOver) return;
-            const hasBossActive = enemies.some(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
-            const randType = Math.random();
-            let type = 1;
-
-            if (!hasBossActive && waveLevel >= 2 && randType < 0.22) {
-                type = Math.random() < 0.5 ? 'boss1' : 'boss2';
-            } else {
-                if (randType > 0.5 && randType <= 0.8) type = 2;
-                else if (randType > 0.8) type = 3;
-                else type = 1;
-            }
-
-            let maxHp = 150;
-            if (type === 2) maxHp = 300;
-            if (type === 3) maxHp = 500;
-            if (type === 'boss1' || type === 'boss2') maxHp = 800;
-
-            const side = Math.random() < 0.5 ? -80 : canvas.width + 30;
-            const yPos = Math.floor(Math.random() * (410 - 240 + 1)) + 240;
-            const isABoss = (type === 'boss1' || type === 'boss2');
-
-            enemies.push({
-                type: type,
-                x: side,
-                y: yPos,
-                z: 0,
-                drawWidth: isABoss ? 135 : 117,  
-                drawHeight: isABoss ? 195 : 175, 
-                facing: side < 0 ? "right" : "left",
-                hp: maxHp,
-                maxHp: maxHp,
-                speed: isABoss ? 2.2 : (type === 3 ? 2.8 : (type === 2 ? 2.1 : 1.6)),
-                action: "idle", 
-                actionTimer: 0
-            });
-        }
-
-        function spawnBeer() {
-            if (isGameOver) return;
-            const randomX = Math.floor(Math.random() * (canvas.width - 160)) + 80;
-            const randomY = Math.floor(Math.random() * (410 - 250 + 1)) + 250;
-
-            beers.push({
-                x: randomX,
-                y: randomY,
-                width: 100,  
-                height: 75,  
-                healAmount: 250,
-                lifeTimer: 10000 
-            });
-        }
-
-        function initGame() {
-            enemies = [];
-            beers = [];
-            spawnTimer = 0;
-            waveLevel = 1;
-            beerSpawnTimer = 0;
-            nextBeerInterval = Math.random() * 6000 + 12000;
-            isGameOver = false;
-
-            player.hp = 1000;
-            player.x = 100;
-            player.y = 320;
-            player.action = "normal";
-
-            spawnEnemyRandomly();
-            spawnEnemyRandomly();
-        }
-
-        const minY = 240; 
-        const maxY = 410; 
-
-        const player = {
-            x: 100,
-            y: 320,
-            z: 0,
-            speed: 4.5,
-            facing: "right",
-            action: "normal", 
-            actionTimer: 0,
-            drawWidth: 117,
-            drawHeight: 175,
-            hp: 1000,
-            maxHp: 1000
-        };
-
-        const keys = {};
-        window.addEventListener("keydown", (e) => {
-            const code = e.code;
-            keys[code] = true;
-
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(code)) {
-                e.preventDefault();
-            }
-
-            if (isGameOver || !gameStarted) return;
-            if (player.action !== "normal" && player.action !== "camina") return;
-
-            if (code === "KeyA") {
-                player.action = "pina";
-                player.actionTimer = 15;
-                sfx.pina();
-                checkAttack(80, 50, 45);
-            } else if (code === "KeyS") {
-                player.action = "botella";
-                player.actionTimer = 20;
-                sfx.botella();
-                checkAttack(90, 55, 90);
-            } else if (code === "KeyD") {
-                player.action = "especial";
-                player.actionTimer = 25;
-                sfx.especial();
-                checkAttackSpecial(130, 70, 220);
-            } else if (code === "KeyW") {
-                player.action = "patada";
-                player.actionTimer = 20;
-                sfx.patada();
-                checkAttack(95, 60, 110);
-            }
-        });
-
-        window.addEventListener("keyup", (e) => {
-            keys[e.code] = false;
-        });
-
-        canvas.addEventListener("click", (e) => {
-            if (!isGameOver) return;
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            const btnX = canvas.width / 2 - 100;
-            const btnY = canvas.height / 2 + 50;
-            const btnW = 200;
-            const btnH = 45;
-
-            if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
-                initGame();
-            }
-        });
-
-        function checkAttack(rangeX, rangeY, damage) {
-            enemies.forEach(enemy => {
-                if (enemy.action === "dead") return;
-                const distY = Math.abs(player.y - enemy.y);
-                const distX = Math.abs(player.x - enemy.x);
-                
-                if (distX < rangeX && distY < rangeY) {
-                    enemy.hp -= damage;
-                    if (enemy.hp <= 0) {
-                        enemy.hp = 0;
-                        enemy.action = "dead";
-                        enemy.actionTimer = 0;
-                    } else {
-                        enemy.action = "hurt";
-                        enemy.actionTimer = 12;
-                    }
-                }
-            });
-        }
-
-        function checkAttackSpecial(rangeX, rangeY, damage) {
-            enemies.forEach(enemy => {
-                if (enemy.action === "dead") return;
-                const distY = Math.abs(player.y - enemy.y);
-                const distX = Math.abs(player.x - enemy.x);
-                
-                if (distX < rangeX && distY < rangeY) {
-                    enemy.hp -= damage;
-                    if (enemy.hp <= 0) {
-                        enemy.hp = 0;
-                        enemy.action = "dead";
-                        enemy.actionTimer = 0;
-                    } else {
-                        enemy.action = "hurt";
-                        enemy.actionTimer = 18;
-                    }
-                }
-            });
-        }
-
-        let lastTime = performance.now();
-        function update(currentTime) {
-            const deltaTime = currentTime - lastTime;
-            lastTime = currentTime;
-
-            if (isGameOver || !gameStarted) return;
-
-            spawnTimer += deltaTime;
-            if (spawnTimer >= spawnInterval) {
-                spawnTimer = 0;
-                waveLevel++;
-                let countToSpawn = Math.min(waveLevel, 3);
-                for(let i = 0; i < countToSpawn; i++) {
-                    spawnEnemyRandomly();
-                }
-            }
-
-            beerSpawnTimer += deltaTime;
-            if (beerSpawnTimer >= nextBeerInterval) {
-                beerSpawnTimer = 0;
-                nextBeerInterval = Math.random() * 8000 + 10000;
-                spawnBeer();
-            }
-
-            for (let i = beers.length - 1; i >= 0; i--) {
-                beers[i].lifeTimer -= deltaTime;
-                if (beers[i].lifeTimer <= 0) beers.splice(i, 1);
-            }
-
-            let isMoving = false;
-            if (player.action === "normal" || player.action === "camina") {
-                if (keys["ArrowUp"] && player.y > minY) { player.y -= player.speed; isMoving = true; }
-                if (keys["ArrowDown"] && player.y < maxY) { player.y += player.speed; isMoving = true; }
-                if (keys["ArrowLeft"]) { player.x -= player.speed; player.facing = "left"; isMoving = true; }
-                if (keys["ArrowRight"]) { player.x += player.speed; player.facing = "right"; isMoving = true; }
-                player.action = isMoving ? "camina" : "normal";
-            }
-
-            if (player.x < 20) player.x = 20;
-            if (player.x > canvas.width - player.drawWidth) player.x = canvas.width - player.drawWidth;
-            if (player.y < minY) player.y = minY;
-            if (player.y > maxY) player.y = maxY;
-
-            if (player.action !== "normal" && player.action !== "camina") {
-                player.actionTimer--;
-                if (player.actionTimer <= 0) player.action = "normal";
-            }
-
-            for (let i = beers.length - 1; i >= 0; i--) {
-                const beer = beers[i];
-                const distX = Math.abs((player.x + player.drawWidth / 2) - (beer.x + beer.width / 2));
-                const distY = Math.abs(player.y - beer.y);
-
-                if (distX < 55 && distY < 35) {
-                    player.hp += beer.healAmount;
-                    if (player.hp > player.maxHp) player.hp = player.maxHp;
-                    sfx.beer();
-                    beers.splice(i, 1);
-                }
-            }
-
-            enemies.forEach(enemy => {
-                if (enemy.action === "dead") return;
-
-                if (enemy.action !== "hurt" && enemy.action !== "hit") {
-                    let moved = false;
-                    let targetX = player.x;
-                    let targetY = player.y;
-                    
-                    if (enemy.type === 3 || enemy.type === 'boss1' || enemy.type === 'boss2') {
-                        targetY += (player.y > enemy.y ? 1 : -1) * 0.4;
-                    }
-
-                    if (enemy.x > targetX + 35) {
-                        enemy.x -= enemy.speed;
-                        enemy.facing = "left";
-                        moved = true;
-                    } else if (enemy.x < targetX - 35) {
-                        enemy.x += enemy.speed;
-                        enemy.facing = "right";
-                        moved = true;
-                    }
-
-                    if (enemy.y < targetY - 2) {
-                        enemy.y += enemy.speed * 0.7;
-                        moved = true;
-                    } else if (enemy.y > targetY + 2) {
-                        enemy.y -= enemy.speed * 0.7;
-                        moved = true;
-                    }
-
-                    enemy.action = moved ? "walk" : "idle";
-
-                    const distX = Math.abs(enemy.x - player.x);
-                    const distY = Math.abs(enemy.y - player.y);
-                    let attackRange = 60;
-                    if (enemy.type === 2) attackRange = 65;
-                    if (enemy.type === 3) attackRange = 75;
-                    if (enemy.type === 'boss1' || enemy.type === 'boss2') attackRange = 85;
-
-                    if (distX < attackRange && distY < 30) {
-                        enemy.action = "hit";
-                        enemy.actionTimer = (enemy.type === 'boss1' || enemy.type === 'boss2') ? 14 : (enemy.type === 3 ? 12 : 15);
-                        
-                        let npcDamage = 15;
-                        if (enemy.type === 2) npcDamage = 25;
-                        if (enemy.type === 3) npcDamage = 35;
-                        if (enemy.type === 'boss1' || enemy.type === 'boss2') npcDamage = 45;
-
-                        player.hp -= npcDamage;
-                        if (player.hp <= 0) {
-                            player.hp = 0;
-                            isGameOver = true;
-                            sfx.gameover();
-                        }
-                    }
-                } else {
-                    enemy.actionTimer--;
-                    if (enemy.actionTimer <= 0) enemy.action = "idle";
-                }
-            });
-        }
-
-        function drawShadow(entity, scale = 1) {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-            ctx.beginPath();
-            ctx.ellipse(entity.x + (entity.drawWidth / 2), entity.y + 5, (entity.drawWidth / 2.5) * scale, 6 * scale, 0, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // --- BARRAS DE ENERGÍA REDISEÑADAS ---
-        function drawUI() {
-            // HUD del Jugador (Esquina Superior Izquierda)
-            const barWidth = 240;
-            const barHeight = 22;
-            const barX = 20;
-            const barY = 20;
-
-            // Marco decorativo estilo Arcade con biselado y sombra
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-            ctx.shadowBlur = 8;
-            ctx.fillStyle = "rgba(10, 10, 18, 0.85)";
-            ctx.beginPath();
-            ctx.roundRect(barX - 4, barY - 4, barWidth + 8, barHeight + 14, 6);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // Texto de Identificación y Estado
-            ctx.fillStyle = "#ffb74d";
-            ctx.font = "bold 11px 'Segoe UI', sans-serif";
-            ctx.fillText("GUSTY (JUGADOR 1)", barX, barY - 6);
-
-            // Fondo de la barra de vida
-            ctx.fillStyle = "#1a0805";
-            ctx.beginPath();
-            ctx.roundRect(barX, barY, barWidth, barHeight, 4);
-            ctx.fill();
-
-            // Rellenador de barra con gradiente dinámico y brillo interior
-            const hpWidth = Math.max(0, (player.hp / player.maxHp) * barWidth);
-            if (hpWidth > 0) {
-                const gradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
-                gradient.addColorStop(0, '#ff7043');
-                gradient.addColorStop(0.5, '#e64a19');
-                gradient.addColorStop(1, '#bf360c');
-                
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.roundRect(barX, barY, hpWidth, barHeight, 4);
-                ctx.fill();
-
-                // Brillo superior de la barra
-                ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
-                ctx.fillRect(barX + 2, barY + 2, hpWidth - 4, 3);
-            }
-
-            // Borde exterior elegante
-            ctx.strokeStyle = "#ffb74d";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.roundRect(barX, barY, barWidth, barHeight, 4);
-            ctx.stroke();
-
-            // Texto numérico de salud exacta opcional dentro del medidor
-            ctx.fillStyle = "#fff";
-            ctx.font = "bold 10px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText(`${player.hp} / ${player.maxHp}`, barX + (barWidth / 2), barY + 15);
-            ctx.textAlign = "left"; // Reset align
-
-            // Oleada (Esquina Superior Derecha)
-            ctx.fillStyle = "rgba(10, 10, 18, 0.85)";
-            ctx.beginPath();
-            ctx.roundRect(canvas.width - 135, 16, 115, 30, 6);
-            ctx.fill();
-            ctx.strokeStyle = "#ff5722";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.roundRect(canvas.width - 135, 16, 115, 30, 6);
-            ctx.stroke();
-
-            ctx.fillStyle = "#ff5722";
-            ctx.font = "bold 12px sans-serif";
-            ctx.fillText(`OLEADA: ${waveLevel}`, canvas.width - 120, 36);
-
-            // Barra de Jefe (Si está activo)
-            const activeBoss = enemies.find(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
-            if (activeBoss) {
-                const bossBarW = 320;
-                const bossBarH = 20;
-                const bossBarX = (canvas.width / 2) - (bossBarW / 2);
-                const bossBarY = 20;
-
-                ctx.fillStyle = "rgba(10, 10, 18, 0.9)";
-                ctx.beginPath();
-                ctx.roundRect(bossBarX - 4, bossBarY - 14, bossBarW + 8, bossBarH + 20, 6);
-                ctx.fill();
-
-                ctx.fillStyle = "#111";
-                ctx.beginPath();
-                ctx.roundRect(bossBarX, bossBarY, bossBarW, bossBarH, 4);
-                ctx.fill();
-
-                const bHpWidth = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * bossBarW);
-                const bossGradient = ctx.createLinearGradient(bossBarX, bossBarY, bossBarX, bossBarY + bossBarH);
-                
-                if (activeBoss.type === 'boss1') {
-                    bossGradient.addColorStop(0, '#e53935');
-                    bossGradient.addColorStop(1, '#8e0000');
-                } else {
-                    bossGradient.addColorStop(0, '#ffeb3b');
-                    bossGradient.addColorStop(1, '#f57f17');
-                }
-
-                ctx.fillStyle = bossGradient;
-                ctx.beginPath();
-                ctx.roundRect(bossBarX, bossBarY, bHpWidth, bossBarH, 4);
-                ctx.fill();
-
-                ctx.strokeStyle = activeBoss.type === 'boss1' ? "#ff8a80" : "#fff59d";
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.roundRect(bossBarX, bossBarY, bossBarW, bossBarH, 4);
-                ctx.stroke();
-
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 10px sans-serif";
-                ctx.textAlign = "center";
-                ctx.fillText(activeBoss.type === 'boss1' ? "⚠️ BOSS: MATURANA (EL ROJO)" : "⚠️ BOSS: MATURANA BOSTERO", bossBarX + (bossBarW / 2), bossBarY - 2);
-                ctx.textAlign = "left";
-            }
-        }
-
-        function drawEnemyHealthBars() {
-            enemies.forEach(enemy => {
-                if (enemy.action === "dead" || enemy.type === 'boss1' || enemy.type === 'boss2') return;
-                const barW = 50;
-                const barH = 5;
-                const bX = enemy.x + (enemy.drawWidth / 2) - (barW / 2);
-                const bY = enemy.y - enemy.drawHeight - 12;
-
-                ctx.fillStyle = "rgba(0,0,0,0.6)";
-                ctx.fillRect(bX - 1, bY - 1, barW + 2, barH + 2);
-                ctx.fillStyle = "#111";
-                ctx.fillRect(bX, bY, barW, barH);
-
-                const eHpWidth = Math.max(0, (enemy.hp / enemy.maxHp) * barW);
-                ctx.fillStyle = enemy.type === 3 ? "#e91e63" : (enemy.type === 2 ? "#ff9800" : "#2196f3");
-                ctx.fillRect(bX, bY, eHpWidth, barH);
-                ctx.strokeStyle = "#000";
-                ctx.strokeRect(bX, bY, barW, barH);
-            });
-        }
-
-        function drawGameOverScreen() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = "#ff5252";
-            ctx.font = "bold 34px sans-serif";
-            ctx.textAlign = "center";
-            ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", canvas.width / 2, canvas.height / 2 - 45);
-
-            ctx.fillStyle = "#ccc";
-            ctx.font = "15px sans-serif";
-            ctx.fillText("Te rodearon los hinchas en la esquina.", canvas.width / 2, canvas.height / 2 - 10);
-
-            const btnX = canvas.width / 2 - 100;
-            const btnY = canvas.height / 2 + 35;
-            const btnW = 200;
-            const btnH = 45;
-
-            ctx.fillStyle = "#ff5722";
-            ctx.beginPath();
-            ctx.roundRect(btnX, btnY, btnW, btnH, 8);
-            ctx.fill();
-            ctx.strokeStyle = "#ffb74d";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.roundRect(btnX, btnY, btnW, btnH, 8);
-            ctx.stroke();
-
-            ctx.fillStyle = "#fff";
-            ctx.font = "bold 14px sans-serif";
-            ctx.fillText("REINICIAR PARTIDA", canvas.width / 2, btnY + 27);
-            ctx.textAlign = "left";
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (bgImage.complete && bgImage.naturalWidth !== 0) {
-                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-            }
-
-            const entities = [];
-            entities.push({ type: 'player', data: player });
-            enemies.forEach(enemy => entities.push({ type: 'npc', data: enemy }));
-            beers.forEach(beer => entities.push({ type: 'beer', data: beer }));
-            
-            entities.sort((a, b) => {
-                const aDead = (a.type === 'npc' && a.data.action === 'dead');
-                const bDead = (b.type === 'npc' && b.data.action === 'dead');
-                if (aDead && !bDead) return -1;
-                if (!aDead && bDead) return 1;
-                return a.data.y - b.data.y;
-            });
-
-            entities.forEach(entity => {
-                const obj = entity.data;
-
-                if (entity.type === 'beer') {
-                    ctx.fillStyle = "rgba(255, 235, 59, 0.4)";
-                    ctx.beginPath();
-                    ctx.arc(obj.x + obj.width / 2, obj.y - obj.height / 2, obj.width / 1.2, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    if (lataImage.complete && lataImage.naturalWidth !== 0) {
-                        ctx.drawImage(lataImage, obj.x, obj.y - obj.height, obj.width, obj.height);
-                    }
-                    return;
-                }
-                
-                const isSpecial = (entity.type === 'player' && obj.action === 'especial');
-                const scaleMultiplier = isSpecial ? 1.4 : 1;
-
-                if (!(entity.type === 'npc' && obj.action === 'dead')) {
-                    drawShadow(obj, scaleMultiplier);
-                }
-
-                ctx.save();
-                ctx.translate(obj.x, obj.y);
-                const sw = obj.drawWidth * scaleMultiplier;
-                const sh = obj.drawHeight * scaleMultiplier;
-
-                if (obj.facing === "left") {
-                    ctx.translate(obj.drawWidth, 0);
-                    ctx.scale(-1, 1);
-                }
-
-                if (entity.type === 'player') {
-                    const currentImg = playerSprites[obj.action] || playerSprites["normal"];
-                    if (currentImg.complete && currentImg.naturalWidth !== 0) {
-                        ctx.drawImage(currentImg, -sw / 2 + (obj.drawWidth/2), -sh, sw, sh);
-                    }
-                } else {
-                    let spritesCollection = npc1Sprites;
-                    if (obj.type === 2) spritesCollection = npc2Sprites;
-                    if (obj.type === 3) spritesCollection = npc3Sprites;
-                    if (obj.type === 'boss1') spritesCollection = boss1Sprites;
-                    if (obj.type === 'boss2') spritesCollection = boss2Sprites;
-
-                    const currentNpcImg = spritesCollection[obj.action] || spritesCollection["idle"];
-                    if (currentNpcImg.complete && currentNpcImg.naturalWidth !== 0) {
-                        ctx.drawImage(currentNpcImg, -sw / 2, -sh, sw, sh);
-                    }
-                }
-                ctx.restore();
-            });
-
-            drawEnemyHealthBars();
-            drawUI();
-
-            if (isGameOver) {
-                drawGameOverScreen();
-            }
-        }
-
-        function gameLoop(currentTime) {
-            update(currentTime);
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        window.onload = () => {
-            checkScreenOrientation();
-            requestAnimationFrame(gameLoop);
-        };
-    </script>
-</body>
-</html>
+                <span class="key-btn">S</span><span class="key-label">Botell
