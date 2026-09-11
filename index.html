@@ -6,7 +6,7 @@
     <title>Beat 'em Up - Gusty vs Hinchas</title>
     <style>
         body {
-            background-color: #040406;
+            background-color: #060608;
             color: #fff;
             display: flex;
             flex-direction: column;
@@ -17,347 +17,1092 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
             overflow: hidden;
+            touch-action: none;
         }
         h1 {
-            margin: 0 0 2px 0;
-            font-size: 1rem;
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
             letter-spacing: 2px;
             color: #ff5722;
             text-transform: uppercase;
         }
         .game-container {
             position: relative;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
-            border: 3px solid #222;
-            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            border: 4px solid #333;
+            border-radius: 8px;
             overflow: hidden;
-            max-width: 100vw;
-            max-height: 85vh;
-            aspect-ratio: 800 / 450;
-            background: #000;
         }
         canvas {
             display: block;
-            width: 100%;
-            height: 100%;
+            background: linear-gradient(to bottom, #151528 0%, #111936 50%, #0c2b50 50%, #15385c 100%);
         }
-        .menu-screen {
+        
+        /* Controles táctiles en pantalla para móviles */
+        .touch-controls {
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(20,20,35,0.98) 0%, rgba(5,5,10,1) 100%);
-            z-index: 100;
+            pointer-events: none;
+            display: none;
+        }
+        .touch-pad {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            width: 130px;
+            height: 130px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            pointer-events: auto;
+            touch-action: none;
+        }
+        .touch-stick {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 87, 34, 0.6);
+            border: 2px solid #ffb74d;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(0, 0);
+            transition: transform 0.05s linear;
+        }
+        .touch-buttons {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            width: 160px;
+            height: 140px;
+            pointer-events: auto;
+        }
+        .t-btn {
+            position: absolute;
+            background: rgba(255, 87, 34, 0.45);
+            border: 2px solid #ffb74d;
+            color: white;
+            font-weight: bold;
+            border-radius: 50%;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            touch-action: none;
+        }
+        #btn-pina { width: 50px; height: 50px; bottom: 10px; left: 10px; }
+        #btn-botella { width: 50px; height: 50px; bottom: 65px; left: 55px; }
+        #btn-patada { width: 50px; height: 50px; bottom: 10px; right: 10px; }
+        #btn-especial { width: 54px; height: 54px; top: 5px; right: 55px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; }
+
+        /* Botón de Pantalla Completa flotante */
+        #fullscreen-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(15, 15, 25, 0.8);
+            border: 2px solid #ff5722;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .arcade-controls {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        .pad-group, .action-group {
+            background: rgba(15, 15, 25, 0.75);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(6px);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .key-btn {
+            background: linear-gradient(to bottom, #333, #222);
+            color: #fff;
+            border: 2px solid #555;
+            border-bottom: 4px solid #111;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            min-width: 22px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .key-label {
+            font-size: 0.75rem;
+            color: #ccc;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        #rotate-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(6, 6, 8, 0.95);
+            z-index: 1000;
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 15px;
-            box-sizing: border-box;
+            padding: 20px;
         }
-        .menu-screen h2 {
+        #rotate-overlay h2 {
             color: #ff5722;
-            font-size: 2rem;
-            margin: 0 0 5px 0;
-            text-shadow: 0 3px 8px rgba(255,87,34,0.5);
-            letter-spacing: 2px;
-        }
-        .menu-screen p {
-            color: #aaa;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            line-height: 1.4;
-            max-width: 350px;
-        }
-        .high-scores-table {
-            width: 100%;
-            max-width: 300px;
             margin-bottom: 10px;
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            overflow: hidden;
+            font-size: 1.5rem;
         }
-        .high-scores-table th, .high-scores-table td {
-            text-align: left;
-            padding: 5px 8px;
-            font-size: 0.75rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .high-scores-table th { color: #ffb74d; background: rgba(0,0,0,0.2); }
-        .high-scores-table td.rank { color: #ff5722; font-weight: bold; width: 25px; }
-        .high-scores-table td.score { color: #fff; text-align: right; font-family: monospace; }
-        #playerNameInput {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid #555;
-            color: #fff;
-            padding: 6px;
-            border-radius: 5px;
+        #rotate-overlay p {
+            color: #ccc;
             font-size: 1rem;
-            text-align: center;
-            margin-bottom: 8px;
-            width: 90px;
-            text-transform: uppercase;
+            margin-bottom: 20px;
         }
-        .menu-btn {
-            background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
+        .overlay-btn {
+            background: #ff5722;
             color: white;
             border: 2px solid #ffb74d;
-            padding: 8px 20px;
-            font-size: 0.9rem;
+            padding: 10px 20px;
+            font-size: 1rem;
             font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
-            margin: 5px;
-            font-family: inherit;
-        }
-        .kill-counter-hud {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: rgba(10, 10, 18, 0.85);
-            border: 1px solid #ff5722;
             border-radius: 6px;
-            padding: 4px 8px;
-            text-align: right;
-            font-size: 11px;
-            color: #fff;
-            pointer-events: none;
-            display: none;
-            z-index: 20;
-            line-height: 1.2;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        .kill-counter-hud .total { color: #ffb74d; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>Gusty vs Hinchas</h1>
-    <div class="game-container" id="gameContainer">
-        
-        <div class="kill-counter-hud" id="killCounterHud">
-            <span class="total" id="hudTotalKills">TOTAL: 0</span><br/>
-            <span id="hudType1">Comunes: 0</span><br/>
-            <span id="hudBoss">Jefes: 0</span>
-        </div>
+    <div id="rotate-overlay">
+        <h2>¡Gira tu celular!</h2>
+        <p>Para una mejor experiencia, coloca tu dispositivo en horizontal.</p>
+        <button class="overlay-btn" id="skip-rotate-btn">OMITIR Y JUGAR</button>
+    </div>
 
-        <!-- Pantalla de Inicio -->
-        <div id="start-screen" class="menu-screen">
-            <h2>GUSTY VS HINCHAS</h2>
-            <p>Usa las flechas o W, A, S, D para moverte. Presiona ESPACIO para golpear.</p>
-            <button class="menu-btn" id="start-game-btn">¡COMENZAR!</button>
-            <h3 style="color: #ffb74d; margin: 10px 0 3px 0; font-size: 0.8rem;">MEJORES PUNTUACIONES</h3>
-            <table class="high-scores-table" id="startHighScoresList"></table>
-        </div>
-
-        <!-- Pantalla de Game Over -->
-        <div id="gameover-screen" class="menu-screen" style="display: none;">
-            <h2>¡GAME OVER!</h2>
-            <p style="margin-bottom: 5px;">Puntuación: <strong id="finalScoreText" style="color:#ffb74d;">0</strong></p>
-            <p style="font-size: 0.8rem; color: #aaa;" id="goKillsSummary">Hinchas eliminados: 0</p>
-            
-            <div id="highscore-form" style="display: none;">
-                <p style="margin-bottom: 5px; font-size: 0.85rem;">¡Nuevo Récord! Ingresa tus iniciales (3 letras):</p>
-                <input type="text" id="playerNameInput" maxlength="3" placeholder="AAA" />
-                <br/>
-                <button class="menu-btn" id="saveScoreBtn">GUARDAR</button>
-            </div>
-
-            <div id="final-scores-list" style="display: none; width: 100%; flex-direction: column; align-items: center;">
-                <h3 style="color: #ffb74d; margin: 5px 0; font-size: 0.8rem;">RANKING TOP 5</h3>
-                <table class="high-scores-table" id="gameOverHighScoresList"></table>
-                <button class="menu-btn" id="restart-game-btn">VOLVER A JUGAR</button>
-            </div>
-        </div>
-
+    <h1>Beat 'em Up - Gusty vs Hinchas</h1>
+    <div class="game-container">
         <canvas id="gameCanvas" width="800" height="450"></canvas>
+        <button id="fullscreen-btn">⛶ Pantalla Completa</button>
+        
+        <!-- Controles para PC -->
+        <div class="arcade-controls" id="keyboard-controls-ui">
+            <div class="pad-group">
+                <span class="key-label">Mover:</span>
+                <span class="key-btn">⬆</span>
+                <span class="key-btn">⬇</span>
+                <span class="key-btn">⬅</span>
+                <span class="key-btn">➡</span>
+            </div>
+            <div class="action-group">
+                <span class="key-label">Golpes:</span>
+                <span class="key-btn">A</span><span class="key-label">Piña</span>
+                <span class="key-btn">S</span><span class="key-label">Botellazo</span>
+                <span class="key-btn">D</span><span class="key-label">Especial</span>
+                <span class="key-btn">W</span><span class="key-label">Patada</span>
+            </div>
+        </div>
+
+        <!-- Controles Táctiles para Celulares (Analógico izq + Botones der) -->
+        <div class="touch-controls" id="touch-controls-ui">
+            <div class="touch-pad" id="touchPad">
+                <div class="touch-stick" id="touchStick"></div>
+            </div>
+            <div class="touch-buttons">
+                <div class="t-btn" id="btn-pina">A</div>
+                <div class="t-btn" id="btn-botella">B</div>
+                <div class="t-btn" id="btn-patada">K</div>
+                <div class="t-btn" id="btn-especial">ESP</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        let audioCtx = null;
+        let musicTimer = null;
+        let musicNoteIndex = 0;
 
-        function getHighScores() {
-            let scores = localStorage.getItem('gusty_highscores_v2');
-            return scores ? JSON.parse(scores) : [];
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            startBGM();
         }
 
-        function saveHighScores(scores) {
-            localStorage.setItem('gusty_highscores_v2', JSON.stringify(scores));
-        }
-
-        function renderHighScoresTable(tableId) {
-            const table = document.getElementById(tableId);
-            if (!table) return;
-            const scores = getHighScores();
-            let html = '<tr><th>#</th><th>Nombre</th><th style="text-align:right">Pts</th></tr>';
-            if (scores.length === 0) {
-                html += '<tr><td colspan="3" style="text-align:center; color:#777;">Sin récords</td></tr>';
-            } else {
-                scores.forEach((s, index) => {
-                    html += `<tr><td class="rank">${index + 1}</td><td>${s.name}</td><td class="score">${s.score}</td></tr>`;
+        const sfx = {
+            pina() {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            },
+            botella() {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            },
+            patada() {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.12);
+            },
+            especial() {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(450, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            },
+            beer() {
+                if (!audioCtx) return;
+                const notes = [300, 450, 600, 900];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.06);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.06);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.06 + 0.08);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + i * 0.06);
+                    osc.stop(audioCtx.currentTime + i * 0.06 + 0.08);
+                });
+            },
+            gameover() {
+                if (!audioCtx) return;
+                const notes = [300, 260, 220, 160];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.2);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.2);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.2 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + i * 0.2);
+                    osc.stop(audioCtx.currentTime + i * 0.2 + 0.25);
                 });
             }
-            table.innerHTML = html;
+        };
+
+        function startBGM() {
+            if (musicTimer) return;
+            const melody = [
+                220, 220, 330, 220, 196, 220, 261, 246,
+                220, 220, 370, 330, 220, 185, 196, 207,
+                220, 220, 330, 220, 196, 261, 293, 330,
+                349, 330, 293, 261, 220, 196, 185, 164
+            ];
+
+            musicTimer = setInterval(() => {
+                if (!audioCtx || isGameOver) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(melody[musicNoteIndex], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+                musicNoteIndex = (musicNoteIndex + 1) % melody.length;
+            }, 180);
         }
 
-        renderHighScoresTable('startHighScoresList');
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
 
-        let gameRunning = false;
-        let wave = 1;
-        let score = 0;
-        let kills = { total: 0, type1: 0, boss: 0 };
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let userSkippedRotate = false;
 
-        let player = { x: 100, y: 300, width: 40, height: 70, speed: 4, attackCooldown: 0 };
-        let enemies = [];
-        let keys = {};
+        function checkScreenOrientation() {
+            const overlay = document.getElementById("rotate-overlay");
+            const controlsUI = document.getElementById("keyboard-controls-ui");
+            const touchUI = document.getElementById("touch-controls-ui");
 
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-        function startGame() {
-            document.getElementById('start-screen').style.display = 'none';
-            document.getElementById('gameover-screen').style.display = 'none';
-            document.getElementById('killCounterHud').style.display = 'block';
-            
-            gameRunning = true;
-            wave = 1;
-            score = 0;
-            kills = { total: 0, type1: 0, boss: 0 };
-            player.x = 100;
-            player.y = 300;
-            spawnWave();
-            loop();
-        }
-
-        function spawnWave() {
-            enemies = [];
-            let count = 2 + wave;
-            for(let i = 0; i < count; i++) {
-                enemies.push({
-                    x: 700 + Math.random() * 80,
-                    y: 240 + Math.random() * 120,
-                    width: 40, height: 70, 
-                    hp: 20 + wave * 5, 
-                    type: (wave % 3 === 0 && i === 0) ? 'boss' : 'type1'
-                });
+            if (isMobile) {
+                if (controlsUI) controlsUI.style.display = "none";
+                if (touchUI) touchUI.style.display = "block";
             }
-        }
 
-        function gameOver() {
-            gameRunning = false;
-            document.getElementById('killCounterHud').style.display = 'none';
-            document.getElementById('gameover-screen').style.display = 'flex';
-            
-            score = wave * 100;
-            document.getElementById('finalScoreText').innerText = score;
-            document.getElementById('goKillsSummary').innerText = `Hinchas eliminados: ${kills.total} (Comunes: ${kills.type1}, Jefes: ${kills.boss})`;
-
-            const highScores = getHighScores();
-            const lowestScore = highScores.length < 5 ? 0 : highScores[highScores.length - 1].score;
-
-            if (highScores.length < 5 || score > lowestScore) {
-                document.getElementById('highscore-form').style.display = 'block';
-                document.getElementById('final-scores-list').style.display = 'none';
+            if (isMobile && window.innerHeight > window.innerWidth && !userSkippedRotate) {
+                overlay.style.display = "flex";
             } else {
-                document.getElementById('highscore-form').style.display = 'none';
-                document.getElementById('final-scores-list').style.display = 'flex';
-                renderHighScoresTable('gameOverHighScoresList');
+                overlay.style.display = "none";
             }
         }
 
-        document.getElementById('start-game-btn').addEventListener('click', startGame);
-        document.getElementById('restart-game-btn').addEventListener('click', startGame);
-
-        document.getElementById('saveScoreBtn').addEventListener('click', () => {
-            let nameInput = document.getElementById('playerNameInput').value.trim().toUpperCase() || 'AAA';
-            nameInput = nameInput.substring(0, 3);
-            
-            let highScores = getHighScores();
-            highScores.push({ name: nameInput, score: score });
-            highScores.sort((a, b) => b.score - a.score);
-            if (highScores.length > 5) highScores = highScores.slice(0, 5);
-            
-            saveHighScores(highScores);
-            
-            document.getElementById('highscore-form').style.display = 'none';
-            document.getElementById('final-scores-list').style.display = 'flex';
-            renderHighScoresTable('gameOverHighScoresList');
-            renderHighScoresTable('startHighScoresList');
+        window.addEventListener("resize", checkScreenOrientation);
+        window.addEventListener("orientationchange", () => {
+            setTimeout(checkScreenOrientation, 200);
         });
 
-        function update() {
-            if (!gameRunning) return;
+        document.getElementById("skip-rotate-btn").addEventListener("click", () => {
+            userSkippedRotate = true;
+            document.getElementById("rotate-overlay").style.display = "none";
+            initAudio();
+        });
 
-            if (keys['arrowup'] || keys['w']) player.y -= player.speed;
-            if (keys['arrowdown']|| keys['s']) player.y += player.speed;
-            if (keys['arrowleft']|| keys['a']) player.x -= player.speed;
-            if (keys['arrowright']||keys['d']) player.x += player.speed;
+        // Pantalla completa
+        document.getElementById("fullscreen-btn").addEventListener("click", () => {
+            initAudio();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Error al intentar pantalla completa:", err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
 
-            if (player.y < 230) player.y = 230;
-            if (player.y > 370) player.y = 370;
+        // Lógica del Stick Analógico Táctil
+        const touchPad = document.getElementById("touchPad");
+        const touchStick = document.getElementById("touchStick");
+        let stickTouchId = null;
+
+        touchPad.addEventListener("touchstart", (e) => {
+            initAudio();
+            const touch = e.changedTouches[0];
+            stickTouchId = touch.identifier;
+            updateStick(touch);
+        });
+
+        touchPad.addEventListener("touchmove", (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === stickTouchId) {
+                    updateStick(e.changedTouches[i]);
+                    break;
+                }
+            }
+        });
+
+        function endStickTouch(e) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === stickTouchId) {
+                    keys["ArrowUp"] = false;
+                    keys["ArrowDown"] = false;
+                    keys["ArrowLeft"] = false;
+                    keys["ArrowRight"] = false;
+                    touchStick.style.transform = `translate(0px, 0px)`;
+                    stickTouchId = null;
+                    break;
+                }
+            }
+        }
+
+        touchPad.addEventListener("touchend", endStickTouch);
+        touchPad.addEventListener("touchcancel", endStickTouch);
+
+        function updateStick(touch) {
+            const rect = touchPad.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxRadius = 40;
+
+            if (distance > maxRadius) {
+                dx = (dx / distance) * maxRadius;
+                dy = (dy / distance) * maxRadius;
+            }
+
+            touchStick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            keys["ArrowLeft"] = dx < -12;
+            keys["ArrowRight"] = dx > 12;
+            keys["ArrowUp"] = dy < -12;
+            keys["ArrowDown"] = dy > 12;
+        }
+
+        // Botones de acción táctiles derechos
+        function setupTouchButton(id, code, actionCallback) {
+            const btn = document.getElementById(id);
+            btn.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                initAudio();
+                keys[code] = true;
+                if (actionCallback && !isGameOver) actionCallback();
+            });
+            btn.addEventListener("touchend", (e) => {
+                e.preventDefault();
+                keys[code] = false;
+            });
+        }
+
+        setupTouchButton("btn-pina", "KeyA", () => {
+            player.action = "pina";
+            player.actionTimer = 15;
+            sfx.pina();
+            checkAttack(80, 50, 45);
+        });
+
+        setupTouchButton("btn-botella", "KeyS", () => {
+            player.action = "botella";
+            player.actionTimer = 20;
+            sfx.botella();
+            checkAttack(90, 55, 90);
+        });
+
+        setupTouchButton("btn-patada", "KeyW", () => {
+            player.action = "patada";
+            player.actionTimer = 20;
+            sfx.patada();
+            checkAttack(95, 60, 110);
+        });
+
+        setupTouchButton("btn-especial", "KeyD", () => {
+            player.action = "especial";
+            player.actionTimer = 25;
+            sfx.especial();
+            checkAttackSpecial(130, 70, 220);
+        });
+
+        // Imágenes del juego
+        const bgImage = new Image();
+        bgImage.src = "fondo.png";
+
+        const lataImage = new Image();
+        lataImage.src = "lata.png";
+
+        const playerSprites = {
+            normal: new Image(),
+            pina:   new Image(),
+            botella: new Image(),
+            especial: new Image(),
+            patada: new Image(),
+            camina: new Image()
+        };
+        playerSprites.normal.src   = "normal.png";
+        playerSprites.pina.src     = "pina.png";
+        playerSprites.botella.src  = "botella.png";
+        playerSprites.especial.src = "especial.png";
+        playerSprites.patada.src   = "patada.png";
+        playerSprites.camina.src   = "caminand.png";
+
+        const npc1Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
+        npc1Sprites.idle.src = "urunormal.png"; npc1Sprites.walk.src = "urucamina.png"; npc1Sprites.hit.src = "urupina.png"; npc1Sprites.hurt.src = "urugolpeado.png"; npc1Sprites.dead.src = "urumuerto.png";
+
+        const npc2Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
+        npc2Sprites.idle.src = "bocanormal.png"; npc2Sprites.walk.src = "bocacorre.png"; npc2Sprites.hit.src = "bocapina.png"; npc2Sprites.hurt.src = "bocapolpeado.png"; npc2Sprites.dead.src = "bocamuerto.png";
+
+        const npc3Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
+        npc3Sprites.idle.src = "mnormal.png"; npc3Sprites.walk.src = "mcaminando.png"; npc3Sprites.hit.src = "mpegando.png"; npc3Sprites.hurt.src = "mrecibiendo.png"; npc3Sprites.dead.src = "mmuerto.png";
+
+        const boss1Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
+        boss1Sprites.idle.src = "rojoparado.png"; boss1Sprites.walk.src = "rojo caminando.png"; boss1Sprites.hit.src = "rojo pegando.png"; boss1Sprites.hurt.src = "rojo recibiendo.png"; boss1Sprites.dead.src = "rojo muerto.png";
+
+        const boss2Sprites = { idle: new Image(), walk: new Image(), hit: new Image(), hurt: new Image(), dead: new Image() };
+        boss2Sprites.idle.src = "boca normal.png"; boss2Sprites.walk.src = "boca camina.png"; boss2Sprites.hit.src = "boca pina.png"; boss2Sprites.hurt.src = "boca golpeado.png"; boss2Sprites.dead.src = "boca muerto.png";
+
+        let enemies = [];
+        let beers = [];
+        let spawnTimer = 0;
+        const spawnInterval = 10000;
+        let waveLevel = 1;
+        let beerSpawnTimer = 0;
+        let nextBeerInterval = Math.random() * 6000 + 12000;
+        let isGameOver = false;
+
+        function spawnEnemyRandomly() {
+            if (isGameOver) return;
+            const hasBossActive = enemies.some(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
+            const randType = Math.random();
+            let type = 1;
+
+            if (!hasBossActive && waveLevel >= 2 && randType < 0.22) {
+                type = Math.random() < 0.5 ? 'boss1' : 'boss2';
+            } else {
+                if (randType > 0.5 && randType <= 0.8) type = 2;
+                else if (randType > 0.8) type = 3;
+                else type = 1;
+            }
+
+            let maxHp = 150;
+            if (type === 2) maxHp = 300;
+            if (type === 3) maxHp = 500;
+            if (type === 'boss1' || type === 'boss2') maxHp = 800;
+
+            const side = Math.random() < 0.5 ? -80 : canvas.width + 30;
+            const yPos = Math.floor(Math.random() * (410 - 240 + 1)) + 240;
+            const isABoss = (type === 'boss1' || type === 'boss2');
+
+            enemies.push({
+                type: type,
+                x: side,
+                y: yPos,
+                z: 0,
+                drawWidth: isABoss ? 135 : 117,  
+                drawHeight: isABoss ? 195 : 175, 
+                facing: side < 0 ? "right" : "left",
+                hp: maxHp,
+                maxHp: maxHp,
+                speed: isABoss ? 2.2 : (type === 3 ? 2.8 : (type === 2 ? 2.1 : 1.6)),
+                action: "idle", 
+                actionTimer: 0
+            });
+        }
+
+        function spawnBeer() {
+            if (isGameOver) return;
+            const randomX = Math.floor(Math.random() * (canvas.width - 160)) + 80;
+            const randomY = Math.floor(Math.random() * (410 - 250 + 1)) + 250;
+
+            beers.push({
+                x: randomX,
+                y: randomY,
+                width: 100,  
+                height: 75,  
+                healAmount: 250,
+                lifeTimer: 10000 
+            });
+        }
+
+        function initGame() {
+            enemies = [];
+            beers = [];
+            spawnTimer = 0;
+            waveLevel = 1;
+            beerSpawnTimer = 0;
+            nextBeerInterval = Math.random() * 6000 + 12000;
+            isGameOver = false;
+
+            player.hp = 1000;
+            player.x = 100;
+            player.y = 320;
+            player.action = "normal";
+
+            spawnEnemyRandomly();
+            spawnEnemyRandomly();
+        }
+
+        const minY = 240; 
+        const maxY = 410; 
+
+        const player = {
+            x: 100,
+            y: 320,
+            z: 0,
+            speed: 4.5,
+            facing: "right",
+            action: "normal", 
+            actionTimer: 0,
+            drawWidth: 117,
+            drawHeight: 175,
+            hp: 1000,
+            maxHp: 1000
+        };
+
+        const keys = {};
+        window.addEventListener("keydown", (e) => {
+            initAudio();
+            const code = e.code;
+            keys[code] = true;
+
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(code)) {
+                e.preventDefault();
+            }
+
+            if (isGameOver) return;
+            if (player.action !== "normal" && player.action !== "camina") return;
+
+            if (code === "KeyA") {
+                player.action = "pina";
+                player.actionTimer = 15;
+                sfx.pina();
+                checkAttack(80, 50, 45);
+            } else if (code === "KeyS") {
+                player.action = "botella";
+                player.actionTimer = 20;
+                sfx.botella();
+                checkAttack(90, 55, 90);
+            } else if (code === "KeyD") {
+                player.action = "especial";
+                player.actionTimer = 25;
+                sfx.especial();
+                checkAttackSpecial(130, 70, 220);
+            } else if (code === "KeyW") {
+                player.action = "patada";
+                player.actionTimer = 20;
+                sfx.patada();
+                checkAttack(95, 60, 110);
+            }
+        });
+
+        window.addEventListener("keyup", (e) => {
+            keys[e.code] = false;
+        });
+
+        canvas.addEventListener("click", (e) => {
+            initAudio();
+            if (!isGameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const btnX = canvas.width / 2 - 100;
+            const btnY = canvas.height / 2 + 50;
+            const btnW = 200;
+            const btnH = 45;
+
+            if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
+                initGame();
+            }
+        });
+
+        function checkAttack(rangeX, rangeY, damage) {
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+                const distY = Math.abs(player.y - enemy.y);
+                const distX = Math.abs(player.x - enemy.x);
+                
+                if (distX < rangeX && distY < rangeY) {
+                    enemy.hp -= damage;
+                    if (enemy.hp <= 0) {
+                        enemy.hp = 0;
+                        enemy.action = "dead";
+                        enemy.actionTimer = 0;
+                    } else {
+                        enemy.action = "hurt";
+                        enemy.actionTimer = 12;
+                    }
+                }
+            });
+        }
+
+        function checkAttackSpecial(rangeX, rangeY, damage) {
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+                const distY = Math.abs(player.y - enemy.y);
+                const distX = Math.abs(player.x - enemy.x);
+                
+                if (distX < rangeX && distY < rangeY) {
+                    enemy.hp -= damage;
+                    if (enemy.hp <= 0) {
+                        enemy.hp = 0;
+                        enemy.action = "dead";
+                        enemy.actionTimer = 0;
+                    } else {
+                        enemy.action = "hurt";
+                        enemy.actionTimer = 18;
+                    }
+                }
+            });
+        }
+
+        let lastTime = performance.now();
+        function update(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            if (isGameOver) return;
+
+            spawnTimer += deltaTime;
+            if (spawnTimer >= spawnInterval) {
+                spawnTimer = 0;
+                waveLevel++;
+                let countToSpawn = Math.min(waveLevel, 3);
+                for(let i = 0; i < countToSpawn; i++) {
+                    spawnEnemyRandomly();
+                }
+            }
+
+            beerSpawnTimer += deltaTime;
+            if (beerSpawnTimer >= nextBeerInterval) {
+                beerSpawnTimer = 0;
+                nextBeerInterval = Math.random() * 8000 + 10000;
+                spawnBeer();
+            }
+
+            for (let i = beers.length - 1; i >= 0; i--) {
+                beers[i].lifeTimer -= deltaTime;
+                if (beers[i].lifeTimer <= 0) beers.splice(i, 1);
+            }
+
+            let isMoving = false;
+            if (player.action === "normal" || player.action === "camina") {
+                if (keys["ArrowUp"] && player.y > minY) { player.y -= player.speed; isMoving = true; }
+                if (keys["ArrowDown"] && player.y < maxY) { player.y += player.speed; isMoving = true; }
+                if (keys["ArrowLeft"]) { player.x -= player.speed; player.facing = "left"; isMoving = true; }
+                if (keys["ArrowRight"]) { player.x += player.speed; player.facing = "right"; isMoving = true; }
+                player.action = isMoving ? "camina" : "normal";
+            }
+
             if (player.x < 20) player.x = 20;
-            if (player.x > 760) player.x = 760;
+            if (player.x > canvas.width - player.drawWidth) player.x = canvas.width - player.drawWidth;
+            if (player.y < minY) player.y = minY;
+            if (player.y > maxY) player.y = maxY;
 
-            if (keys[' '] && player.attackCooldown === 0) {
-                player.attackCooldown = 15;
-                enemies.forEach((en, idx) => {
-                    if (Math.abs(en.x - player.x) < 60 && Math.abs(en.y - player.y) < 30) {
-                        en.hp -= 25;
-                        if (en.hp <= 0) {
-                            kills.total++;
-                            if (en.type === 'boss') kills.boss++;
-                            else kills.type1++;
-                            enemies.splice(idx, 1);
+            if (player.action !== "normal" && player.action !== "camina") {
+                player.actionTimer--;
+                if (player.actionTimer <= 0) player.action = "normal";
+            }
+
+            for (let i = beers.length - 1; i >= 0; i--) {
+                const beer = beers[i];
+                const distX = Math.abs((player.x + player.drawWidth / 2) - (beer.x + beer.width / 2));
+                const distY = Math.abs(player.y - beer.y);
+
+                if (distX < 55 && distY < 35) {
+                    player.hp += beer.healAmount;
+                    if (player.hp > player.maxHp) player.hp = player.maxHp;
+                    sfx.beer();
+                    beers.splice(i, 1);
+                }
+            }
+
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+
+                if (enemy.action !== "hurt" && enemy.action !== "hit") {
+                    let moved = false;
+                    let targetX = player.x;
+                    let targetY = player.y;
+                    
+                    if (enemy.type === 3 || enemy.type === 'boss1' || enemy.type === 'boss2') {
+                        targetY += (player.y > enemy.y ? 1 : -1) * 0.4;
+                    }
+
+                    if (enemy.x > targetX + 35) {
+                        enemy.x -= enemy.speed;
+                        enemy.facing = "left";
+                        moved = true;
+                    } else if (enemy.x < targetX - 35) {
+                        enemy.x += enemy.speed;
+                        enemy.facing = "right";
+                        moved = true;
+                    }
+
+                    if (enemy.y < targetY - 2) {
+                        enemy.y += enemy.speed * 0.7;
+                        moved = true;
+                    } else if (enemy.y > targetY + 2) {
+                        enemy.y -= enemy.speed * 0.7;
+                        moved = true;
+                    }
+
+                    enemy.action = moved ? "walk" : "idle";
+
+                    const distX = Math.abs(enemy.x - player.x);
+                    const distY = Math.abs(enemy.y - player.y);
+                    let attackRange = 60;
+                    if (enemy.type === 2) attackRange = 65;
+                    if (enemy.type === 3) attackRange = 75;
+                    if (enemy.type === 'boss1' || enemy.type === 'boss2') attackRange = 85;
+
+                    if (distX < attackRange && distY < 30) {
+                        enemy.action = "hit";
+                        enemy.actionTimer = (enemy.type === 'boss1' || enemy.type === 'boss2') ? 14 : (enemy.type === 3 ? 12 : 15);
+                        
+                        let npcDamage = 15;
+                        if (enemy.type === 2) npcDamage = 25;
+                        if (enemy.type === 3) npcDamage = 35;
+                        if (enemy.type === 'boss1' || enemy.type === 'boss2') npcDamage = 45;
+
+                        player.hp -= npcDamage;
+                        if (player.hp <= 0) {
+                            player.hp = 0;
+                            isGameOver = true;
+                            sfx.gameover();
                         }
                     }
-                });
-            }
-            if (player.attackCooldown > 0) player.attackCooldown--;
+                } else {
+                    enemy.actionTimer--;
+                    if (enemy.actionTimer <= 0) enemy.action = "idle";
+                }
+            });
+        }
 
-            if (enemies.length === 0) {
-                wave++;
-                spawnWave();
-            }
+        function drawShadow(entity, scale = 1) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.beginPath();
+            ctx.ellipse(entity.x + (entity.drawWidth / 2), entity.y + 5, (entity.drawWidth / 2.5) * scale, 6 * scale, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-            // Presiona X para probar el Game Over de inmediato si lo deseas
-            if (keys['x']) {
-                gameOver();
-            }
+        function drawUI() {
+            const barWidth = 260;
+            const barHeight = 22;
+            const barX = 20;
+            const barY = 20;
 
-            // Actualizar HUD en vivo
-            document.getElementById('hudTotalKills').innerText = `TOTAL: ${kills.total}`;
-            document.getElementById('hudType1').innerText = `Comunes: ${kills.type1}`;
-            document.getElementById('hudBoss').innerText = `Jefes: ${kills.boss}`;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
+            ctx.fillRect(barX - 3, barY - 3, barWidth + 6, barHeight + 6);
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = "#111";
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+
+            const hpWidth = Math.max(0, (player.hp / player.maxHp) * barWidth);
+            const gradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
+            gradient.addColorStop(0, '#ff7043');
+            gradient.addColorStop(0.5, '#f4511e');
+            gradient.addColorStop(1, '#bf360c');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(barX, barY, hpWidth, barHeight);
+
+            ctx.strokeStyle = "#ffb74d";
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText("GUSTY", barX + 10, barY + 15);
+
+            ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
+            ctx.fillRect(canvas.width - 135, 17, 115, 28);
+            ctx.strokeStyle = "#ff5722";
+            ctx.strokeRect(canvas.width - 135, 17, 115, 28);
+            ctx.fillStyle = "#ff5722";
+            ctx.font = "bold 13px sans-serif";
+            ctx.fillText(`OLEADA: ${waveLevel}`, canvas.width - 122, 35);
+
+            const activeBoss = enemies.find(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
+            if (activeBoss) {
+                const bossBarW = 340;
+                const bossBarH = 18;
+                const bossBarX = (canvas.width / 2) - (bossBarW / 2);
+                const bossBarY = 20;
+
+                ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
+                ctx.fillRect(bossBarX - 3, bossBarY - 3, bossBarW + 6, bossBarH + 6);
+                ctx.fillStyle = "#111";
+                ctx.fillRect(bossBarX, bossBarY, bossBarW, bossBarH);
+
+                const bHpWidth = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * bossBarW);
+                const bossGradient = ctx.createLinearGradient(bossBarX, bossBarY, bossBarX, bossBarY + bossBarH);
+                
+                if (activeBoss.type === 'boss1') {
+                    bossGradient.addColorStop(0, '#e53935');
+                    bossGradient.addColorStop(1, '#b71c1c');
+                } else {
+                    bossGradient.addColorStop(0, '#ffeb3b');
+                    bossGradient.addColorStop(1, '#f57f17');
+                }
+
+                ctx.fillStyle = bossGradient;
+                ctx.fillRect(bossBarX, bossBarY, bHpWidth, bossBarH);
+                ctx.strokeStyle = activeBoss.type === 'boss1' ? "#ff8a80" : "#fff59d";
+                ctx.strokeRect(bossBarX, bossBarY, bossBarW, bossBarH);
+
+                ctx.fillStyle = activeBoss.type === 'boss1' ? "#fff" : "#111";
+                ctx.font = "bold 11px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(activeBoss.type === 'boss1' ? "BOSS: MATURANA (EL ROJO)" : "BOSS: MATURANA BOSTERO", bossBarX + (bossBarW / 2), bossBarY + 13);
+                ctx.textAlign = "left";
+            }
+        }
+
+        function drawEnemyHealthBars() {
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead" || enemy.type === 'boss1' || enemy.type === 'boss2') return;
+                const barW = 55;
+                const barH = 5;
+                const bX = enemy.x + (enemy.drawWidth / 2) - (barW / 2);
+                const bY = enemy.y - enemy.drawHeight - 12;
+
+                ctx.fillStyle = "rgba(0,0,0,0.7)";
+                ctx.fillRect(bX - 1, bY - 1, barW + 2, barH + 2);
+                ctx.fillStyle = "#222";
+                ctx.fillRect(bX, bY, barW, barH);
+
+                const eHpWidth = Math.max(0, (enemy.hp / enemy.maxHp) * barW);
+                ctx.fillStyle = enemy.type === 3 ? "#e91e63" : (enemy.type === 2 ? "#ff9800" : "#2196f3");
+                ctx.fillRect(bX, bY, eHpWidth, barH);
+                ctx.strokeStyle = "#000";
+                ctx.strokeRect(bX, bY, barW, barH);
+            });
+        }
+
+        function drawGameOverScreen() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#ff5252";
+            ctx.font = "bold 36px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", canvas.width / 2, canvas.height / 2 - 45);
+
+            ctx.fillStyle = "#ccc";
+            ctx.font = "16px sans-serif";
+            ctx.fillText("Te rodearon los hinchas en la esquina.", canvas.width / 2, canvas.height / 2 - 10);
+
+            const btnX = canvas.width / 2 - 100;
+            const btnY = canvas.height / 2 + 35;
+            const btnW = 200;
+            const btnH = 45;
+
+            ctx.fillStyle = "#ff5722";
+            ctx.fillRect(btnX, btnY, btnW, btnH);
+            ctx.strokeStyle = "#ffb74d";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(btnX, btnY, btnW, btnH);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 15px sans-serif";
+            ctx.fillText("REINICIAR PARTIDA", canvas.width / 2, btnY + 27);
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Suelo
-            ctx.fillStyle = '#111';
-            ctx.fillRect(0, 220, canvas.width, 230);
+            if (bgImage.complete && bgImage.naturalWidth !== 0) {
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            }
 
-            // Jugador
-            ctx.fillStyle = '#2196f3';
-            ctx.fillRect(player.x, player.y - player.height, player.width, player.height);
-
-            // Enemigos
-            enemies.forEach(en => {
-                ctx.fillStyle = en.type === 'boss' ? '#e91e63' : '#f44336';
-                ctx.fillRect(en.x, en.y - en.height, en.width, en.height);
+            const entities = [];
+            entities.push({ type: 'player', data: player });
+            enemies.forEach(enemy => entities.push({ type: 'npc', data: enemy }));
+            beers.forEach(beer => entities.push({ type: 'beer', data: beer }));
+            
+            entities.sort((a, b) => {
+                const aDead = (a.type === 'npc' && a.data.action === 'dead');
+                const bDead = (b.type === 'npc' && b.data.action === 'dead');
+                if (aDead && !bDead) return -1;
+                if (!aDead && bDead) return 1;
+                return a.data.y - b.data.y;
             });
+
+            entities.forEach(entity => {
+                const obj = entity.data;
+
+                if (entity.type === 'beer') {
+                    ctx.fillStyle = "rgba(255, 235, 59, 0.4)";
+                    ctx.beginPath();
+                    ctx.arc(obj.x + obj.width / 2, obj.y - obj.height / 2, obj.width / 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (lataImage.complete && lataImage.naturalWidth !== 0) {
+                        ctx.drawImage(lataImage, obj.x, obj.y - obj.height, obj.width, obj.height);
+                    }
+                    return;
+                }
+                
+                const isSpecial = (entity.type === 'player' && obj.action === 'especial');
+                const scaleMultiplier = isSpecial ? 1.4 : 1;
+
+                if (!(entity.type === 'npc' && obj.action === 'dead')) {
+                    drawShadow(obj, scaleMultiplier);
+                }
+
+                ctx.save();
+                ctx.translate(obj.x, obj.y);
+                const sw = obj.drawWidth * scaleMultiplier;
+                const sh = obj.drawHeight * scaleMultiplier;
+
+                if (obj.facing === "left") {
+                    ctx.translate(obj.drawWidth, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                if (entity.type === 'player') {
+                    const currentImg = playerSprites[obj.action] || playerSprites["normal"];
+                    if (currentImg.complete && currentImg.naturalWidth !== 0) {
+                        ctx.drawImage(currentImg, -sw / 2 + (obj.drawWidth/2), -sh, sw, sh);
+                    }
+                } else {
+                    let spritesCollection = npc1Sprites;
+                    if (obj.type === 2) spritesCollection = npc2Sprites;
+                    if (obj.type === 3) spritesCollection = npc3Sprites;
+                    if (obj.type === 'boss1') spritesCollection = boss1Sprites;
+                    if (obj.type === 'boss2') spritesCollection = boss2Sprites;
+
+                    const currentNpcImg = spritesCollection[obj.action] || spritesCollection["idle"];
+                    if (currentNpcImg.complete && currentNpcImg.naturalWidth !== 0) {
+                        ctx.drawImage(currentNpcImg, -sw / 2, -sh, sw, sh);
+                    }
+                }
+                ctx.restore();
+            });
+
+            drawEnemyHealthBars();
+            drawUI();
+
+            if (isGameOver) {
+                drawGameOverScreen();
+            }
         }
 
-        function loop() {
-            if (!gameRunning) return;
-            update();
+        function gameLoop(currentTime) {
+            update(currentTime);
             draw();
-            requestAnimationFrame(loop);
+            requestAnimationFrame(gameLoop);
         }
+
+        window.onload = () => {
+            checkScreenOrientation();
+            initGame();
+            requestAnimationFrame(gameLoop);
+        };
     </script>
 </body>
 </html>
