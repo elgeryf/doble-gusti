@@ -42,7 +42,6 @@
             height: auto;
         }
         
-        /* Pantalla de inicio para forzar pantalla completa y audio */
         #start-screen {
             position: absolute;
             top: 0;
@@ -81,7 +80,6 @@
             box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
         }
 
-        /* Controles táctiles optimizados */
         .touch-controls {
             position: absolute;
             bottom: 0;
@@ -115,11 +113,13 @@
             pointer-events: none;
             transform: translate(0, 0);
         }
+        
+        /* Contenedor de botones de acción relocalizado sin encimarse */
         .touch-buttons {
             position: absolute;
             right: 15px;
-            bottom: 15px;
-            width: 170px;
+            bottom: 10px;
+            width: 210px;
             height: 170px;
             pointer-events: auto;
         }
@@ -132,14 +132,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             touch-action: none;
         }
-        #btn-pina { width: 52px; height: 52px; bottom: 10px; left: 10px; background: rgba(255, 87, 34, 0.5); }
-        #btn-botella { width: 52px; height: 52px; bottom: 68px; left: 58px; background: rgba(255, 152, 0, 0.5); }
-        #btn-patada { width: 52px; height: 52px; bottom: 10px; right: 10px; background: rgba(33, 150, 243, 0.5); border-color: #90caf9; }
-        #btn-especial { width: 56px; height: 56px; top: 10px; right: 65px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; font-size: 0.7rem; }
+        
+        /* Posiciones totalmente separadas en forma de diamante de golpes */
+        #btn-pina { width: 48px; height: 48px; bottom: 50px; left: 10px; background: rgba(255, 87, 34, 0.6); }
+        #btn-botella { width: 48px; height: 48px; bottom: 5px; left: 60px; background: rgba(255, 152, 0, 0.6); }
+        #btn-patada { width: 48px; height: 48px; bottom: 50px; right: 10px; background: rgba(33, 150, 243, 0.6); border-color: #90caf9; }
+        #btn-especial { width: 52px; height: 52px; top: 5px; left: 78px; background: rgba(233, 30, 99, 0.7); border-color: #ff80ab; font-size: 0.6rem; }
 
         .arcade-controls {
             position: absolute;
@@ -230,16 +232,14 @@
 
     <h1>Beat 'em Up - Gusty vs Hinchas</h1>
     <div class="game-container" id="gameContainer">
-        <!-- Pantalla de inicio integrada que fuerza pantalla completa -->
         <div id="start-screen">
             <h2>GUSTY VS HINCHAS</h2>
-            <p>Toca el botón para iniciar la partida en pantalla completa y con sonido.</p>
-            <button class="start-btn" id="start-game-btn">¡JUGAR AHORA!</button>
+            <p>Iniciar en pantalla completa y activar sonido.</p>
+            <button class="start-btn" id="start-game-btn">INICIAR EN PANTALLA COMPLETA</button>
         </div>
 
         <canvas id="gameCanvas" width="800" height="450"></canvas>
         
-        <!-- Controles para PC -->
         <div class="arcade-controls" id="keyboard-controls-ui">
             <div class="pad-group">
                 <span class="key-label">Mover:</span>
@@ -257,7 +257,6 @@
             </div>
         </div>
 
-        <!-- Controles Táctiles para Celulares -->
         <div class="touch-controls" id="touch-controls-ui">
             <div class="touch-pad" id="touchPad">
                 <div class="touch-stick" id="touchStick"></div>
@@ -436,17 +435,18 @@
             document.getElementById("rotate-overlay").style.display = "none";
         });
 
-        // Botón de inicio que lanza la pantalla completa real
         document.getElementById("start-game-btn").addEventListener("click", () => {
             gameStarted = true;
             initAudio();
             document.getElementById("start-screen").style.display = "none";
 
-            // Intentar poner en pantalla completa el contenedor o la página
-            if (document.documentElement.requestFullscreen) {
+            const container = document.getElementById("gameContainer");
+            if (container.requestFullscreen) {
+                container.requestFullscreen().catch(() => {});
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            } else if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(() => {});
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                document.documentElement.webkitRequestFullscreen();
             }
 
             checkScreenOrientation();
