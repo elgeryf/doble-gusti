@@ -93,11 +93,14 @@
             font-size: 0.8rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             touch-action: none;
+            transition: transform 0.05s linear, filter 0.05s linear;
         }
-        #btn-pina { width: 50px; height: 50px; bottom: 10px; left: 10px; }
-        #btn-botella { width: 50px; height: 50px; bottom: 65px; left: 55px; }
-        #btn-patada { width: 50px; height: 50px; bottom: 10px; right: 10px; }
-        #btn-especial { width: 54px; height: 54px; top: 5px; right: 55px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; }
+        .touch-buttons { width: 190px; height: 160px; }
+        #btn-pina { width: 62px; height: 62px; bottom: 5px; left: 0px; }
+        #btn-botella { width: 62px; height: 62px; bottom: 80px; left: 64px; }
+        #btn-patada { width: 62px; height: 62px; bottom: 5px; right: 0px; }
+        #btn-especial { width: 60px; height: 60px; top: 0px; right: 64px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; }
+        .t-btn.pressed { filter: brightness(1.6); transform: scale(0.92); }
 
         #fullscreen-btn {
             position: absolute;
@@ -392,6 +395,14 @@
             }
         }
 
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                if (audioCtx && audioCtx.state === "running") audioCtx.suspend();
+            } else {
+                if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+            }
+        });
+
         window.addEventListener("resize", checkScreenOrientation);
         window.addEventListener("orientationchange", () => {
             setTimeout(checkScreenOrientation, 200);
@@ -476,47 +487,60 @@
             keys["ArrowDown"] = dy > 12;
         }
 
+        const ATTACKS = {
+            pina:     { action: "pina",     timer: 15, sfxName: "pina",     hit: () => checkAttack(80, 50, 45) },
+            botella:  { action: "botella",  timer: 20, sfxName: "botella",  hit: () => checkAttack(90, 55, 90) },
+            patada:   { action: "patada",   timer: 20, sfxName: "patada",   hit: () => checkAttack(95, 60, 110) },
+            especial: { action: "especial", timer: 25, sfxName: "especial",hit: () => checkAttackSpecial(130, 70, 220) }
+        };
+        const COMBO_BUFFER_WINDOW = 6; // frames antes de que termine la animación en los que ya se puede "cargar" el próximo golpe
+        let bufferedAttack = null;
+
+        function tryAttack(name) {
+            if (gameState !== 'playing') return;
+            const isFree = player.action === "normal" || player.action === "camina";
+            const isNearEnd = !isFree && player.actionTimer <= COMBO_BUFFER_WINDOW;
+
+            if (isFree) {
+                fireAttack(name);
+            } else if (isNearEnd) {
+                bufferedAttack = name;
+            }
+        }
+
+        function fireAttack(name) {
+            const a = ATTACKS[name];
+            player.action = a.action;
+            player.actionTimer = a.timer;
+            sfx[a.sfxName]();
+            a.hit();
+        }
+
+        function vibrate(ms) {
+            if (navigator.vibrate) navigator.vibrate(ms);
+        }
+
         function setupTouchButton(id, code, actionCallback) {
             const btn = document.getElementById(id);
             btn.addEventListener("touchstart", (e) => {
                 e.preventDefault();
                 initAudio();
                 keys[code] = true;
-                if (actionCallback && !isGameOver && gameState === 'playing') actionCallback();
+                btn.classList.add("pressed");
+                if (actionCallback && !isGameOver && gameState === 'playing') vibrate(20);
+                if (actionCallback) actionCallback();
             });
             btn.addEventListener("touchend", (e) => {
                 e.preventDefault();
+                btn.classList.remove("pressed");
                 keys[code] = false;
             });
         }
 
-        setupTouchButton("btn-pina", "KeyA", () => {
-            player.action = "pina";
-            player.actionTimer = 15;
-            sfx.pina();
-            checkAttack(80, 50, 45);
-        });
-
-        setupTouchButton("btn-botella", "KeyS", () => {
-            player.action = "botella";
-            player.actionTimer = 20;
-            sfx.botella();
-            checkAttack(90, 55, 90);
-        });
-
-        setupTouchButton("btn-patada", "KeyW", () => {
-            player.action = "patada";
-            player.actionTimer = 20;
-            sfx.patada();
-            checkAttack(95, 60, 110);
-        });
-
-        setupTouchButton("btn-especial", "KeyD", () => {
-            player.action = "especial";
-            player.actionTimer = 25;
-            sfx.especial();
-            checkAttackSpecial(130, 70, 220);
-        });
+        setupTouchButton("btn-pina", "KeyA", () => tryAttack("pina"));
+        setupTouchButton("btn-botella", "KeyS", () => tryAttack("botella"));
+        setupTouchButton("btn-patada", "KeyW", () => tryAttack("patada"));
+        setupTouchButton("btn-especial", "KeyD", () => tryAttack("especial"));
 
         const bgImage = new Image();
         bgImage.src = "fondo.png";
@@ -650,6 +674,7 @@
             nextBeerInterval = Math.random() * 6000 + 12000;
             gameState = 'playing';
             isGameOver = false;
+            bufferedAttack = null;
 
             player.hp = 1000;
             player.x = 100;
@@ -679,6 +704,7 @@
 
         const keys = {};
         window.addEventListener("keydown", (e) => {
+            if (e.repeat) return;
             initAudio();
             const code = e.code;
             
@@ -701,28 +727,15 @@
             }
 
             if (gameState !== 'playing') return;
-            if (player.action !== "normal" && player.action !== "camina") return;
 
             if (code === "KeyA") {
-                player.action = "pina";
-                player.actionTimer = 15;
-                sfx.pina();
-                checkAttack(80, 50, 45);
+                tryAttack("pina");
             } else if (code === "KeyS") {
-                player.action = "botella";
-                player.actionTimer = 20;
-                sfx.botella();
-                checkAttack(90, 55, 90);
+                tryAttack("botella");
             } else if (code === "KeyD") {
-                player.action = "especial";
-                player.actionTimer = 25;
-                sfx.especial();
-                checkAttackSpecial(130, 70, 220);
+                tryAttack("especial");
             } else if (code === "KeyW") {
-                player.action = "patada";
-                player.actionTimer = 20;
-                sfx.patada();
-                checkAttack(95, 60, 110);
+                tryAttack("patada");
             }
         });
 
@@ -834,7 +847,14 @@
 
             if (player.action !== "normal" && player.action !== "camina") {
                 player.actionTimer--;
-                if (player.actionTimer <= 0) player.action = "normal";
+                if (player.actionTimer <= 0) {
+                    player.action = "normal";
+                    if (bufferedAttack) {
+                        const next = bufferedAttack;
+                        bufferedAttack = null;
+                        fireAttack(next);
+                    }
+                }
             }
 
             for (let i = beers.length - 1; i >= 0; i--) {
