@@ -38,7 +38,6 @@
             background: linear-gradient(to bottom, #151528 0%, #111936 50%, #0c2b50 50%, #15385c 100%);
         }
         
-        /* Controles táctiles en pantalla para móviles */
         .touch-controls {
             position: absolute;
             bottom: 0;
@@ -75,9 +74,9 @@
         }
         .touch-buttons {
             position: absolute;
-            right: 20px;
-            bottom: 20px;
-            width: 160px;
+            right: 25px;
+            bottom: 25px;
+            width: 140px;
             height: 140px;
             pointer-events: auto;
         }
@@ -87,20 +86,24 @@
             border: 2px solid #ffb74d;
             color: white;
             font-weight: bold;
-            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             touch-action: none;
+            transform: rotate(45deg);
         }
-        #btn-pina { width: 50px; height: 50px; bottom: 10px; left: 10px; }
-        #btn-botella { width: 50px; height: 50px; bottom: 65px; left: 55px; }
-        #btn-patada { width: 50px; height: 50px; bottom: 10px; right: 10px; }
-        #btn-especial { width: 54px; height: 54px; top: 5px; right: 55px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; }
+        /* Contenido interno para contrarrestar la rotación del rombo y mantener el texto derecho */
+        .t-btn span {
+            transform: rotate(-45deg);
+        }
+        /* Distribución en Rombo: Bota(Izquierda), Piña(Abajo), Patada(Derecha), Especial(Arriba) */
+        #btn-botella  { width: 46px; height: 46px; top: 47px; left: 0px; border-radius: 8px; }
+        #btn-pina     { width: 46px; height: 46px; bottom: 0px; left: 47px; border-radius: 8px; }
+        #btn-patada   { width: 46px; height: 46px; top: 47px; right: 0px; border-radius: 8px; }
+        #btn-especial { width: 46px; height: 46px; top: 0px; left: 47px; border-radius: 8px; background: rgba(233, 30, 99, 0.6); border-color: #ff80ab; }
 
-        /* Botón de Pantalla Completa flotante */
         #fullscreen-btn {
             position: absolute;
             top: 15px;
@@ -158,50 +161,54 @@
             letter-spacing: 0.5px;
         }
 
-        #rotate-overlay {
+        #welcome-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(6, 6, 8, 0.95);
-            z-index: 1000;
-            display: none;
+            background: rgba(6, 6, 8, 0.96);
+            z-index: 2000;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
             padding: 20px;
         }
-        #rotate-overlay h2 {
+        #welcome-overlay h2 {
             color: #ff5722;
             margin-bottom: 10px;
             font-size: 1.5rem;
+            text-transform: uppercase;
         }
-        #rotate-overlay p {
+        #welcome-overlay p {
             color: #ccc;
             font-size: 1rem;
-            margin-bottom: 20px;
+            max-width: 400px;
+            line-height: 1.4;
+            margin-bottom: 25px;
         }
         .overlay-btn {
             background: #ff5722;
             color: white;
             border: 2px solid #ffb74d;
-            padding: 10px 20px;
-            font-size: 1rem;
+            padding: 12px 24px;
+            font-size: 1.05rem;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 6px 15px rgba(255,87,34,0.4);
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <div id="rotate-overlay">
-        <h2>¡Gira tu celular!</h2>
-        <p>Para una mejor experiencia, coloca tu dispositivo en horizontal.</p>
-        <button class="overlay-btn" id="skip-rotate-btn">OMITIR Y JUGAR</button>
+    <div id="welcome-overlay">
+        <h2>¡Bienvenido a Gusty vs Hinchas!</h2>
+        <p>Para una mejor experiencia y visualización completa del juego, te recomendamos colocar tu dispositivo en <strong>posición horizontal</strong>.</p>
+        <button class="overlay-btn" id="start-fullscreen-btn">Iniciar en Pantalla Completa</button>
     </div>
 
     <h1>Beat 'em Up - Gusty vs Hinchas</h1>
@@ -209,7 +216,6 @@
         <canvas id="gameCanvas" width="800" height="450"></canvas>
         <button id="fullscreen-btn">⛶ Pantalla Completa</button>
         
-        <!-- Controles para PC -->
         <div class="arcade-controls" id="keyboard-controls-ui">
             <div class="pad-group">
                 <span class="key-label">Mover:</span>
@@ -227,16 +233,15 @@
             </div>
         </div>
 
-        <!-- Controles Táctiles para Celulares (Analógico izq + Botones der) -->
         <div class="touch-controls" id="touch-controls-ui">
             <div class="touch-pad" id="touchPad">
                 <div class="touch-stick" id="touchStick"></div>
             </div>
             <div class="touch-buttons">
-                <div class="t-btn" id="btn-pina">A</div>
-                <div class="t-btn" id="btn-botella">B</div>
-                <div class="t-btn" id="btn-patada">K</div>
-                <div class="t-btn" id="btn-especial">ESP</div>
+                <div class="t-btn" id="btn-botella"><span>B</span></div>
+                <div class="t-btn" id="btn-pina"><span>A</span></div>
+                <div class="t-btn" id="btn-patada"><span>K</span></div>
+                <div class="t-btn" id="btn-especial"><span>ESP</span></div>
             </div>
         </div>
     </div>
@@ -376,10 +381,8 @@
         const ctx = canvas.getContext("2d");
 
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        let userSkippedRotate = false;
 
-        function checkScreenOrientation() {
-            const overlay = document.getElementById("rotate-overlay");
+        function checkDeviceControls() {
             const controlsUI = document.getElementById("keyboard-controls-ui");
             const touchUI = document.getElementById("touch-controls-ui");
 
@@ -387,26 +390,22 @@
                 if (controlsUI) controlsUI.style.display = "none";
                 if (touchUI) touchUI.style.display = "block";
             }
-
-            if (isMobile && window.innerHeight > window.innerWidth && !userSkippedRotate) {
-                overlay.style.display = "flex";
-            } else {
-                overlay.style.display = "none";
-            }
         }
 
-        window.addEventListener("resize", checkScreenOrientation);
-        window.addEventListener("orientationchange", () => {
-            setTimeout(checkScreenOrientation, 200);
-        });
-
-        document.getElementById("skip-rotate-btn").addEventListener("click", () => {
-            userSkippedRotate = true;
-            document.getElementById("rotate-overlay").style.display = "none";
+        document.getElementById("start-fullscreen-btn").addEventListener("click", () => {
             initAudio();
+            document.getElementById("welcome-overlay").style.display = "none";
+            
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Error al intentar pantalla completa:", err);
+                });
+            }
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
         });
 
-        // Pantalla completa
         document.getElementById("fullscreen-btn").addEventListener("click", () => {
             initAudio();
             if (!document.fullscreenElement) {
@@ -420,7 +419,6 @@
             }
         });
 
-        // Lógica del Stick Analógico Táctil
         const touchPad = document.getElementById("touchPad");
         const touchStick = document.getElementById("touchStick");
         let stickTouchId = null;
@@ -481,14 +479,13 @@
             keys["ArrowDown"] = dy > 12;
         }
 
-        // Botones de acción táctiles derechos
         function setupTouchButton(id, code, actionCallback) {
             const btn = document.getElementById(id);
             btn.addEventListener("touchstart", (e) => {
                 e.preventDefault();
                 initAudio();
                 keys[code] = true;
-                if (actionCallback && !isGameOver) actionCallback();
+                if (actionCallback && !isGameOver && gameState === 'playing') actionCallback();
             });
             btn.addEventListener("touchend", (e) => {
                 e.preventDefault();
@@ -524,7 +521,6 @@
             checkAttackSpecial(130, 70, 220);
         });
 
-        // Imágenes del juego
         const bgImage = new Image();
         bgImage.src = "fondo.png";
 
@@ -566,12 +562,33 @@
         let spawnTimer = 0;
         const spawnInterval = 10000;
         let waveLevel = 1;
+        let score = 0;
         let beerSpawnTimer = 0;
         let nextBeerInterval = Math.random() * 6000 + 12000;
-        let isGameOver = false;
+        
+        let gameState = 'playing';
+        let highScores = JSON.parse(localStorage.getItem('gusty_highscores')) || [];
+        let playerInitials = "";
+
+        function checkHighScore(finalScore) {
+            if (highScores.length < 5 || finalScore > highScores[highScores.length - 1].score) {
+                gameState = 'input_initials';
+                playerInitials = "";
+            } else {
+                gameState = 'gameover';
+            }
+        }
+
+        function saveHighScoreLocally(initials, finalScore) {
+            highScores.push({ initials: initials.toUpperCase().slice(0, 3) || "GUS", score: finalScore });
+            highScores.sort((a, b) => b.score - a.score);
+            if (highScores.length > 5) highScores = highScores.slice(0, 5);
+            localStorage.setItem('gusty_highscores', JSON.stringify(highScores));
+            gameState = 'gameover';
+        }
 
         function spawnEnemyRandomly() {
-            if (isGameOver) return;
+            if (gameState !== 'playing') return;
             const hasBossActive = enemies.some(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
             const randType = Math.random();
             let type = 1;
@@ -584,14 +601,20 @@
                 else type = 1;
             }
 
-            let maxHp = 150;
-            if (type === 2) maxHp = 300;
-            if (type === 3) maxHp = 500;
-            if (type === 'boss1' || type === 'boss2') maxHp = 800;
+            let baseHp = 150;
+            if (type === 2) baseHp = 300;
+            if (type === 3) baseHp = 500;
+            if (type === 'boss1' || type === 'boss2') baseHp = 800;
+
+            const difficultyMultiplier = 1 + (waveLevel - 1) * 0.22;
+            const maxHp = Math.round(baseHp * difficultyMultiplier);
 
             const side = Math.random() < 0.5 ? -80 : canvas.width + 30;
             const yPos = Math.floor(Math.random() * (410 - 240 + 1)) + 240;
             const isABoss = (type === 'boss1' || type === 'boss2');
+
+            let baseSpeed = isABoss ? 2.2 : (type === 3 ? 2.8 : (type === 2 ? 2.1 : 1.6));
+            let speedMultiplier = 1 + (waveLevel - 1) * 0.08;
 
             enemies.push({
                 type: type,
@@ -603,14 +626,16 @@
                 facing: side < 0 ? "right" : "left",
                 hp: maxHp,
                 maxHp: maxHp,
-                speed: isABoss ? 2.2 : (type === 3 ? 2.8 : (type === 2 ? 2.1 : 1.6)),
+                scoreValue: Math.round((isABoss ? 500 : (type === 3 ? 300 : (type === 2 ? 200 : 100))) * difficultyMultiplier),
+                speed: baseSpeed * speedMultiplier,
+                damageMultiplier: difficultyMultiplier,
                 action: "idle", 
                 actionTimer: 0
             });
         }
 
         function spawnBeer() {
-            if (isGameOver) return;
+            if (gameState !== 'playing') return;
             const randomX = Math.floor(Math.random() * (canvas.width - 160)) + 80;
             const randomY = Math.floor(Math.random() * (410 - 250 + 1)) + 250;
 
@@ -629,9 +654,10 @@
             beers = [];
             spawnTimer = 0;
             waveLevel = 1;
+            score = 0;
             beerSpawnTimer = 0;
             nextBeerInterval = Math.random() * 6000 + 12000;
-            isGameOver = false;
+            gameState = 'playing';
 
             player.hp = 1000;
             player.x = 100;
@@ -663,13 +689,26 @@
         window.addEventListener("keydown", (e) => {
             initAudio();
             const code = e.code;
+            
+            if (gameState === 'input_initials') {
+                e.preventDefault();
+                if (code === 'Enter') {
+                    saveHighScoreLocally(playerInitials, score);
+                } else if (code === 'Backspace') {
+                    playerInitials = playerInitials.slice(0, -1);
+                } else if (e.key.length === 1 && playerInitials.length < 3) {
+                    playerInitials += e.key.toUpperCase();
+                }
+                return;
+            }
+
             keys[code] = true;
 
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(code)) {
                 e.preventDefault();
             }
 
-            if (isGameOver) return;
+            if (gameState !== 'playing') return;
             if (player.action !== "normal" && player.action !== "camina") return;
 
             if (code === "KeyA") {
@@ -701,15 +740,15 @@
 
         canvas.addEventListener("click", (e) => {
             initAudio();
-            if (!isGameOver) return;
+            if (gameState !== 'gameover') return;
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
             const btnX = canvas.width / 2 - 100;
-            const btnY = canvas.height / 2 + 50;
+            const btnY = canvas.height / 2 + 130;
             const btnW = 200;
-            const btnH = 45;
+            const btnH = 40;
 
             if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
                 initGame();
@@ -728,6 +767,7 @@
                         enemy.hp = 0;
                         enemy.action = "dead";
                         enemy.actionTimer = 0;
+                        score += enemy.scoreValue;
                     } else {
                         enemy.action = "hurt";
                         enemy.actionTimer = 12;
@@ -748,6 +788,7 @@
                         enemy.hp = 0;
                         enemy.action = "dead";
                         enemy.actionTimer = 0;
+                        score += enemy.scoreValue;
                     } else {
                         enemy.action = "hurt";
                         enemy.actionTimer = 18;
@@ -761,13 +802,13 @@
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            if (isGameOver) return;
+            if (gameState !== 'playing') return;
 
             spawnTimer += deltaTime;
             if (spawnTimer >= spawnInterval) {
                 spawnTimer = 0;
                 waveLevel++;
-                let countToSpawn = Math.min(waveLevel, 3);
+                let countToSpawn = Math.min(waveLevel + 1, 4);
                 for(let i = 0; i < countToSpawn; i++) {
                     spawnEnemyRandomly();
                 }
@@ -860,16 +901,16 @@
                         enemy.action = "hit";
                         enemy.actionTimer = (enemy.type === 'boss1' || enemy.type === 'boss2') ? 14 : (enemy.type === 3 ? 12 : 15);
                         
-                        let npcDamage = 15;
-                        if (enemy.type === 2) npcDamage = 25;
-                        if (enemy.type === 3) npcDamage = 35;
-                        if (enemy.type === 'boss1' || enemy.type === 'boss2') npcDamage = 45;
+                        let baseNpcDamage = 15;
+                        if (enemy.type === 2) baseNpcDamage = 25;
+                        if (enemy.type === 3) baseNpcDamage = 35;
+                        if (enemy.type === 'boss1' || enemy.type === 'boss2') baseNpcDamage = 45;
 
-                        player.hp -= npcDamage;
+                        player.hp -= Math.round(baseNpcDamage * enemy.damageMultiplier);
                         if (player.hp <= 0) {
                             player.hp = 0;
-                            isGameOver = true;
                             sfx.gameover();
+                            checkHighScore(score);
                         }
                     }
                 } else {
@@ -880,15 +921,24 @@
         }
 
         function drawShadow(entity, scale = 1) {
+            const depthFactor = 0.7 + (entity.y - minY) / (maxY - minY) * 0.4;
+            const finalScale = scale * depthFactor;
+
             ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
             ctx.beginPath();
-            ctx.ellipse(entity.x + (entity.drawWidth / 2), entity.y + 5, (entity.drawWidth / 2.5) * scale, 6 * scale, 0, 0, Math.PI * 2);
+            ctx.ellipse(
+                entity.x + (entity.drawWidth / 2), 
+                entity.y + 5, 
+                (entity.drawWidth / 2.6) * finalScale, 
+                6 * finalScale, 
+                0, 0, Math.PI * 2
+            );
             ctx.fill();
         }
 
         function drawUI() {
-            const barWidth = 260;
-            const barHeight = 22;
+            const barWidth = 220;
+            const barHeight = 20;
             const barX = 20;
             const barY = 20;
 
@@ -915,16 +965,24 @@
             ctx.strokeRect(barX, barY, barWidth, barHeight);
 
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 12px sans-serif";
-            ctx.fillText("GUSTY", barX + 10, barY + 15);
+            ctx.font = "bold 11px sans-serif";
+            ctx.fillText("GUSTY", barX + 8, barY + 14);
 
             ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
-            ctx.fillRect(canvas.width - 135, 17, 115, 28);
+            ctx.fillRect(canvas.width - 275, 17, 125, 28);
+            ctx.strokeStyle = "#ffb74d";
+            ctx.strokeRect(canvas.width - 275, 17, 125, 28);
+            ctx.fillStyle = "#ffb74d";
+            ctx.font = "bold 13px sans-serif";
+            ctx.fillText(`PTS: ${score}`, canvas.width - 265, 35);
+
+            ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
+            ctx.fillRect(canvas.width - 140, 17, 120, 28);
             ctx.strokeStyle = "#ff5722";
-            ctx.strokeRect(canvas.width - 135, 17, 115, 28);
+            ctx.strokeRect(canvas.width - 140, 17, 120, 28);
             ctx.fillStyle = "#ff5722";
             ctx.font = "bold 13px sans-serif";
-            ctx.fillText(`OLEADA: ${waveLevel}`, canvas.width - 122, 35);
+            ctx.fillText(`WAVE: ${waveLevel}`, canvas.width - 128, 35);
 
             const activeBoss = enemies.find(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
             if (activeBoss) {
@@ -983,23 +1041,67 @@
             });
         }
 
+        function drawInitialsInputScreen() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#ffb74d";
+            ctx.font = "bold 26px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("¡NUEVO RÉCORD TOP 5!", canvas.width / 2, 85);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "16px sans-serif";
+            ctx.fillText(`Puntaje obtenido: ${score} pts`, canvas.width / 2, 120);
+            ctx.fillText("Ingresá tus 3 iniciales y presioná [ENTER]:", canvas.width / 2, 160);
+
+            ctx.fillStyle = "#111";
+            ctx.fillRect(canvas.width / 2 - 75, 190, 150, 55);
+            ctx.strokeStyle = "#ff5722";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(canvas.width / 2 - 75, 190, 150, 55);
+
+            ctx.fillStyle = "#ff5722";
+            ctx.font = "bold 32px monospace";
+            ctx.fillText(playerInitials + (playerInitials.length < 3 ? "_" : ""), canvas.width / 2, 230);
+            ctx.textAlign = "left";
+        }
+
         function drawGameOverScreen() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "#ff5252";
-            ctx.font = "bold 36px sans-serif";
+            ctx.font = "bold 26px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", canvas.width / 2, canvas.height / 2 - 45);
+            ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", canvas.width / 2, 45);
 
-            ctx.fillStyle = "#ccc";
-            ctx.font = "16px sans-serif";
-            ctx.fillText("Te rodearon los hinchas en la esquina.", canvas.width / 2, canvas.height / 2 - 10);
+            ctx.fillStyle = "#ffb74d";
+            ctx.font = "bold 15px sans-serif";
+            ctx.fillText("--- TOP 5 MEJORES LUCHADORES ---", canvas.width / 2, 85);
+
+            let startY = 115;
+            for (let i = 0; i < 5; i++) {
+                const entry = highScores[i];
+                let text = `${i + 1}.   ---   0 PTS`;
+                if (entry) {
+                    text = `${i + 1}.   ${entry.initials}   -   ${entry.score} PTS`;
+                }
+
+                if (i === 0) {
+                    ctx.fillStyle = "#ffd700";
+                    ctx.font = "bold 16px sans-serif";
+                } else {
+                    ctx.fillStyle = "#ccc";
+                    ctx.font = "14px sans-serif";
+                }
+                ctx.fillText(text, canvas.width / 2 - 110, startY + (i * 26));
+            }
 
             const btnX = canvas.width / 2 - 100;
-            const btnY = canvas.height / 2 + 35;
+            const btnY = canvas.height - 55;
             const btnW = 200;
-            const btnH = 45;
+            const btnH = 40;
 
             ctx.fillStyle = "#ff5722";
             ctx.fillRect(btnX, btnY, btnW, btnH);
@@ -1008,8 +1110,9 @@
             ctx.strokeRect(btnX, btnY, btnW, btnH);
 
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 15px sans-serif";
-            ctx.fillText("REINICIAR PARTIDA", canvas.width / 2, btnY + 27);
+            ctx.font = "bold 14px sans-serif";
+            ctx.fillText("REINICIAR PARTIDA", canvas.width / 2, btnY + 25);
+            ctx.textAlign = "left";
         }
 
         function draw() {
@@ -1087,7 +1190,9 @@
             drawEnemyHealthBars();
             drawUI();
 
-            if (isGameOver) {
+            if (gameState === 'input_initials') {
+                drawInitialsInputScreen();
+            } else if (gameState === 'gameover') {
                 drawGameOverScreen();
             }
         }
@@ -1099,7 +1204,7 @@
         }
 
         window.onload = () => {
-            checkScreenOrientation();
+            checkDeviceControls();
             initGame();
             requestAnimationFrame(gameLoop);
         };
