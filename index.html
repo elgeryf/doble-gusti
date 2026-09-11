@@ -261,6 +261,39 @@
             max-width: 320px;
             line-height: 1.5;
         }
+        #initials-form {
+            position: absolute;
+            left: 50%;
+            top: 48%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 8px;
+            z-index: 60;
+        }
+        #initials-input {
+            width: 110px;
+            height: 46px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: #111;
+            color: #ff5722;
+            border: 3px solid #ff5722;
+            border-radius: 6px;
+            outline: none;
+        }
+        #initials-ok-btn {
+            background: #ff5722;
+            color: white;
+            border: 2px solid #ffb74d;
+            padding: 0 18px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -311,6 +344,11 @@
                 <div class="t-btn" id="btn-patada">K</div>
                 <div class="t-btn" id="btn-especial">ESP</div>
             </div>
+        </div>
+
+        <div id="initials-form" style="display:none;">
+            <input id="initials-input" type="text" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+            <button id="initials-ok-btn">OK</button>
         </div>
     </div>
 
@@ -636,9 +674,15 @@
             });
         }
 
-        setupTouchButton("btn-pina", "KeyA", () => tryAttack("pina"));
+        setupTouchButton("btn-pina", "KeyA", () => {
+            if (gameState === 'input_initials') { confirmInitialSlot(); return; }
+            tryAttack("pina");
+        });
         setupTouchButton("btn-botella", "KeyS", () => tryAttack("botella"));
-        setupTouchButton("btn-patada", "KeyW", () => tryAttack("patada"));
+        setupTouchButton("btn-patada", "KeyW", () => {
+            if (gameState === 'input_initials') { backInitialSlot(); return; }
+            tryAttack("patada");
+        });
         setupTouchButton("btn-especial", "KeyD", () => tryAttack("especial"));
 
         const bgImage = new Image();
@@ -690,12 +734,17 @@
         let gameState = 'start'; // 'start', 'playing', 'gameover', 'input_initials'
         let highScores = JSON.parse(localStorage.getItem('gusty_highscores')) || [];
         let playerInitials = "";
+        const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let initialsLetters = ["A", "A", "A"];
+        let initialsSlot = 0;
+        let stickPrev = { up: false, down: false, left: false, right: false };
 
         function checkHighScore(finalScore) {
             isGameOver = true;
             if (highScores.length < 5 || finalScore > highScores[highScores.length - 1].score) {
                 gameState = 'input_initials';
                 playerInitials = "";
+                showInitialsForm();
             } else {
                 gameState = 'gameover';
             }
@@ -707,7 +756,77 @@
             if (highScores.length > 5) highScores = highScores.slice(0, 5);
             localStorage.setItem('gusty_highscores', JSON.stringify(highScores));
             gameState = 'gameover';
+            hideInitialsForm();
         }
+
+        function showInitialsForm() {
+            if (isMobile) {
+                initialsLetters = ["A", "A", "A"];
+                initialsSlot = 0;
+                stickPrev = { up: false, down: false, left: false, right: false };
+                return;
+            }
+            const form = document.getElementById("initials-form");
+            const input = document.getElementById("initials-input");
+            input.value = "";
+            form.style.display = "flex";
+            input.focus();
+        }
+
+        function hideInitialsForm() {
+            document.getElementById("initials-form").style.display = "none";
+        }
+
+        function updateInitialsSelector() {
+            if (keys["ArrowUp"] && !stickPrev.up) cycleInitialLetter(1);
+            if (keys["ArrowDown"] && !stickPrev.down) cycleInitialLetter(-1);
+            if (keys["ArrowLeft"] && !stickPrev.left) initialsSlot = Math.max(0, initialsSlot - 1);
+            if (keys["ArrowRight"] && !stickPrev.right) initialsSlot = Math.min(2, initialsSlot + 1);
+            stickPrev.up = keys["ArrowUp"];
+            stickPrev.down = keys["ArrowDown"];
+            stickPrev.left = keys["ArrowLeft"];
+            stickPrev.right = keys["ArrowRight"];
+        }
+
+        function cycleInitialLetter(dir) {
+            const current = ALPHABET.indexOf(initialsLetters[initialsSlot]);
+            const next = (current + dir + ALPHABET.length) % ALPHABET.length;
+            initialsLetters[initialsSlot] = ALPHABET[next];
+            vibrate(10);
+        }
+
+        function confirmInitialSlot() {
+            if (gameState !== 'input_initials') return;
+            if (initialsSlot < 2) {
+                initialsSlot++;
+                vibrate(15);
+            } else {
+                saveHighScoreLocally(initialsLetters.join(""), score);
+            }
+        }
+
+        function backInitialSlot() {
+            if (gameState !== 'input_initials') return;
+            initialsSlot = Math.max(0, initialsSlot - 1);
+            vibrate(15);
+        }
+
+        document.getElementById("initials-input").addEventListener("input", (e) => {
+            let v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
+            e.target.value = v;
+            playerInitials = v;
+        });
+
+        document.getElementById("initials-input").addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.stopPropagation();
+                saveHighScoreLocally(playerInitials, score);
+            }
+        });
+
+        document.getElementById("initials-ok-btn").addEventListener("click", () => {
+            saveHighScoreLocally(playerInitials, score);
+        });
 
         function spawnEnemyRandomly() {
             if (gameState !== 'playing') return;
@@ -775,6 +894,7 @@
             gameState = 'playing';
             isGameOver = false;
             bufferedAttack = null;
+            hideInitialsForm();
 
             player.hp = 1000;
             playerDisplayHp = 1000;
@@ -873,6 +993,8 @@
                         enemy.hp = 0;
                         enemy.action = "dead";
                         enemy.actionTimer = 0;
+                        enemy.deathWave = waveLevel;
+                        enemy.fadeAlpha = 1;
                         score += enemy.scoreValue;
                     } else {
                         enemy.action = "hurt";
@@ -894,6 +1016,8 @@
                         enemy.hp = 0;
                         enemy.action = "dead";
                         enemy.actionTimer = 0;
+                        enemy.deathWave = waveLevel;
+                        enemy.fadeAlpha = 1;
                         score += enemy.scoreValue;
                     } else {
                         enemy.action = "hurt";
@@ -908,6 +1032,10 @@
             const deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
+            if (gameState === 'input_initials') {
+                if (isMobile) updateInitialsSelector();
+                return;
+            }
             if (gameState !== 'playing') return;
 
             spawnTimer += deltaTime;
@@ -978,7 +1106,15 @@
             }
 
             enemies.forEach(enemy => {
-                if (enemy.action === "dead") return;
+                if (enemy.action === "dead") {
+                    const wavesSinceDeath = waveLevel - (enemy.deathWave || 0);
+                    if (wavesSinceDeath >= 4) {
+                        if (enemy.fadeAlpha === undefined) enemy.fadeAlpha = 1;
+                        enemy.fadeAlpha -= deltaTime * 0.0006;
+                        if (enemy.fadeAlpha < 0) enemy.fadeAlpha = 0;
+                    }
+                    return;
+                }
 
                 if (enemy.action !== "hurt" && enemy.action !== "hit") {
                     let moved = false;
@@ -1037,6 +1173,8 @@
                     if (enemy.actionTimer <= 0) enemy.action = "idle";
                 }
             });
+
+            enemies = enemies.filter(e => e.fadeAlpha === undefined || e.fadeAlpha > 0);
         }
 
         function drawShadow(entity, scale = 1) {
@@ -1191,18 +1329,52 @@
             ctx.fillStyle = "#fff";
             ctx.font = "16px sans-serif";
             ctx.fillText(`Puntaje obtenido: ${score} pts`, canvas.width / 2, 120);
-            ctx.fillText("Ingresá tus 3 iniciales y presioná [ENTER]:", canvas.width / 2, 160);
 
-            // Cuadro de texto de iniciales
-            ctx.fillStyle = "#111";
-            ctx.fillRect(canvas.width / 2 - 75, 190, 150, 55);
-            ctx.strokeStyle = "#ff5722";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(canvas.width / 2 - 75, 190, 150, 55);
+            if (isMobile) {
+                ctx.fillText("Joystick ↑↓ para cambiar letra, ◀▶ para moverte", canvas.width / 2, 155);
+                ctx.fillText("Botón A confirma · Botón K borra/vuelve", canvas.width / 2, 175);
 
-            ctx.fillStyle = "#ff5722";
-            ctx.font = "bold 32px monospace";
-            ctx.fillText(playerInitials + (playerInitials.length < 3 ? "_" : ""), canvas.width / 2, 230);
+                const slotW = 60, slotH = 70, gap = 14;
+                const totalW = slotW * 3 + gap * 2;
+                const startX = canvas.width / 2 - totalW / 2;
+                const y = 195;
+                const blink = Math.sin(performance.now() / 180) > 0;
+
+                for (let i = 0; i < 3; i++) {
+                    const x = startX + i * (slotW + gap);
+                    const isActive = i === initialsSlot;
+
+                    ctx.fillStyle = "#111";
+                    ctx.fillRect(x, y, slotW, slotH);
+                    ctx.strokeStyle = isActive ? "#ffee58" : "#ff5722";
+                    ctx.lineWidth = isActive ? 4 : 3;
+                    ctx.strokeRect(x, y, slotW, slotH);
+
+                    ctx.fillStyle = (isActive && blink) ? "#ffee58" : "#ff5722";
+                    ctx.font = "bold 34px monospace";
+                    ctx.fillText(initialsLetters[i], x + slotW / 2, y + slotH / 2 + 12);
+
+                    if (isActive) {
+                        ctx.fillStyle = "#ffee58";
+                        ctx.font = "bold 16px sans-serif";
+                        ctx.fillText("▲", x + slotW / 2, y - 6);
+                        ctx.fillText("▼", x + slotW / 2, y + slotH + 20);
+                    }
+                }
+            } else {
+                ctx.fillText("Ingresá tus 3 iniciales y presioná [ENTER]:", canvas.width / 2, 160);
+
+                // Cuadro de texto de iniciales
+                ctx.fillStyle = "#111";
+                ctx.fillRect(canvas.width / 2 - 75, 190, 150, 55);
+                ctx.strokeStyle = "#ff5722";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(canvas.width / 2 - 75, 190, 150, 55);
+
+                ctx.fillStyle = "#ff5722";
+                ctx.font = "bold 32px monospace";
+                ctx.fillText(playerInitials + (playerInitials.length < 3 ? "_" : ""), canvas.width / 2, 230);
+            }
             ctx.textAlign = "left";
         }
 
@@ -1298,6 +1470,9 @@
                 }
 
                 ctx.save();
+                if (entity.type === 'npc' && obj.action === 'dead' && obj.fadeAlpha !== undefined) {
+                    ctx.globalAlpha = obj.fadeAlpha;
+                }
                 ctx.translate(obj.x, obj.y);
                 const sw = obj.drawWidth * scaleMultiplier;
                 const sh = obj.drawHeight * scaleMultiplier;
