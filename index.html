@@ -475,42 +475,40 @@
             keys["ArrowDown"] = dy > 12;
         }
 
-        function setupTouchButton(id, code, actionCallback) {
+        // OPTIMIZACIÓN TÁCTIL PARA LOS BOTONES DE GOLPES:
+        function setupTouchButton(id, actionCallback) {
             const btn = document.getElementById(id);
             btn.addEventListener("touchstart", (e) => {
                 e.preventDefault();
                 initAudio();
-                keys[code] = true;
-                if (actionCallback && !isGameOver && gameState === 'playing') actionCallback();
-            });
-            btn.addEventListener("touchend", (e) => {
-                e.preventDefault();
-                keys[code] = false;
-            });
+                if (gameState === 'playing' && (player.action === "normal" || player.action === "camina")) {
+                    actionCallback();
+                }
+            }, { passive: false });
         }
 
-        setupTouchButton("btn-pina", "KeyA", () => {
+        setupTouchButton("btn-pina", () => {
             player.action = "pina";
             player.actionTimer = 15;
             sfx.pina();
             checkAttack(80, 50, 45);
         });
 
-        setupTouchButton("btn-botella", "KeyS", () => {
+        setupTouchButton("btn-botella", () => {
             player.action = "botella";
             player.actionTimer = 20;
             sfx.botella();
             checkAttack(90, 55, 90);
         });
 
-        setupTouchButton("btn-patada", "KeyW", () => {
+        setupTouchButton("btn-patada", () => {
             player.action = "patada";
             player.actionTimer = 20;
             sfx.patada();
             checkAttack(95, 60, 110);
         });
 
-        setupTouchButton("btn-especial", "KeyD", () => {
+        setupTouchButton("btn-especial", () => {
             player.action = "especial";
             player.actionTimer = 25;
             sfx.especial();
@@ -948,7 +946,6 @@
             ctx.font = "bold 11px sans-serif";
             ctx.fillText("GUSTY", barX + 8, barY + 14);
 
-            // Marcadores de Puntos y Oleada arriba
             ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
             ctx.fillRect(canvas.width - 275, 17, 125, 28);
             ctx.strokeStyle = "#ffb74d";
@@ -1036,7 +1033,6 @@
             ctx.fillText(`Puntaje obtenido: ${score} pts`, canvas.width / 2, 120);
             ctx.fillText("Ingresá tus 3 iniciales y presioná [ENTER]:", canvas.width / 2, 160);
 
-            // Cuadro de texto de iniciales
             ctx.fillStyle = "#111";
             ctx.fillRect(canvas.width / 2 - 75, 190, 150, 55);
             ctx.strokeStyle = "#ff5722";
@@ -1058,7 +1054,6 @@
             ctx.textAlign = "center";
             ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", canvas.width / 2, 45);
 
-            // Dibujar Tabla de Ranking Top 5
             ctx.fillStyle = "#ffb74d";
             ctx.font = "bold 15px sans-serif";
             ctx.fillText("--- TOP 5 MEJORES LUCHADORES ---", canvas.width / 2, 85);
@@ -1072,7 +1067,7 @@
                 }
 
                 if (i === 0) {
-                    ctx.fillStyle = "#ffd700"; // Destacar al número 1 en dorado brillante
+                    ctx.fillStyle = "#ffd700";
                     ctx.font = "bold 16px sans-serif";
                 } else {
                     ctx.fillStyle = "#ccc";
