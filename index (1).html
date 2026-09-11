@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat 'em Up - Gusty vs Hinchas</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background: radial-gradient(ellipse at 50% 0%, #14141c 0%, #060608 70%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            overflow: hidden;
+        }
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: #ff5722;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(255, 87, 34, 0.6);
+        }
+        .game-container {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05);
+            border: 4px solid #2a2a2a;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 800 / 450;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #151528 0%, #111936 50%, #0c2b50 50%, #15385c 100%);
+        }
+
+        /* --- Controles desktop (teclado, solo informativo) --- */
+        .arcade-controls {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        .pad-group, .action-group {
+            background: rgba(15, 15, 25, 0.75);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(6px);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .key-btn {
+            background: linear-gradient(to bottom, #333, #222);
+            color: #fff;
+            border: 2px solid #555;
+            border-bottom: 4px solid #111;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            min-width: 22px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .key-label {
+            font-size: 0.75rem;
+            color: #ccc;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Controles táctiles (celular) --- */
+        .touch-controls {
+            display: none;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        body.is-touch .arcade-controls { display: none; }
+        body.is-touch .touch-controls { display: block; }
+
+        .joystick-zone {
+            position: absolute;
+            left: 18px;
+            bottom: 18px;
+            width: 110px;
+            height: 110px;
+            pointer-events: auto;
+        }
+        .joystick-base {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(70,70,90,0.55), rgba(10,10,15,0.55) 70%);
+            border: 2px solid rgba(255,255,255,0.18);
+            box-shadow: inset 0 0 14px rgba(0,0,0,0.6), 0 4px 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+        .joystick-stick {
+            position: absolute;
+            width: 46px;
+            height: 46px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #ff8a65, #ff5722 60%, #bf360c);
+            border: 2px solid rgba(255,255,255,0.4);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.3);
+            transition: transform 0.06s linear;
+        }
+
+        .action-zone {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            width: 150px;
+            height: 150px;
+            pointer-events: none;
+        }
+        .action-btn {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-weight: bold;
+            font-size: 0.62rem;
+            color: #fff;
+            letter-spacing: 0.3px;
+            text-align: center;
+            line-height: 1.1;
+            border: 2px solid rgba(255,255,255,0.35);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.55), inset 0 2px 3px rgba(255,255,255,0.25);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .action-btn:active, .action-btn.pressed {
+            transform: scale(0.9);
+            filter: brightness(1.25);
+        }
+        .btn-pina    { background: linear-gradient(to bottom, #64b5f6, #1565c0); right: 47px; bottom: 78px; }
+        .btn-botella { background: linear-gradient(to bottom, #ffd54f, #ef6c00); right: 0px;  bottom: 47px; }
+        .btn-especial{ background: linear-gradient(to bottom, #e91e63, #880e4f); right: 47px; bottom: 0px; }
+        .btn-patada  { background: linear-gradient(to bottom, #66bb6a, #2e7d32); right: 94px; bottom: 47px; }
+
+        @media (hover: hover) and (pointer: fine) {
+            body:not(.is-touch) .touch-controls { display: none; }
+        }
+
+        /* --- Aviso de rotación (sugerencia, no bloqueo) --- */
+        .rotate-hint {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            background: rgba(20, 20, 28, 0.92);
+            border: 1px solid rgba(255, 183, 77, 0.4);
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+            max-width: 92vw;
+        }
+        body.is-touch.is-portrait:not(.hint-dismissed) .rotate-hint {
+            display: flex;
+        }
+        .rotate-hint .icon {
+            font-size: 1.3rem;
+            animation: rotateWiggle 1.4s ease-in-out infinite;
+        }
+        .rotate-hint span.msg {
+            font-size: 0.78rem;
+            color: #ffcc80;
+            line-height: 1.2;
+        }
+        .rotate-hint button {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        @keyframes rotateWiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-90deg); }
+            60% { transform: rotate(-90deg); }
+            85% { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="rotate-hint" id="rotateHint">
+        <span class="icon">📱</span>
+        <span class="msg">Se juega mejor horizontal, pero podés seguir así si querés.</span>
+        <button id="rotateHintClose">✕</button>
+    </div>
+
+
+    <h1>Beat 'em Up - Gusty vs Hinchas</h1>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
+        
+        <div class="arcade-controls">
+            <div class="pad-group">
+                <span class="key-label">Mover:</span>
+                <span class="key-btn">⬆</span>
+                <span class="key-btn">⬇</span>
+                <span class="key-btn">⬅</span>
+                <span class="key-btn">➡</span>
+            </div>
+            <div class="action-group">
+                <span class="key-label">Golpes:</span>
+                <span class="key-btn">A</span><span class="key-label">Piña</span>
+                <span class="key-btn">S</span><span class="key-label">Botellazo</span>
+                <span class="key-btn">D</span><span class="key-label">Especial</span>
+                <span class="key-btn">W</span><span class="key-label">Patada</span>
+            </div>
+        </div>
+
+        <div class="touch-controls">
+            <div class="joystick-zone" id="joystickZone">
+                <div class="joystick-base"></div>
+                <div class="joystick-stick" id="joystickStick"></div>
+            </div>
+            <div class="action-zone">
+                <div class="action-btn btn-pina" data-action="pina">PIÑA</div>
+                <div class="action-btn btn-botella" data-action="botella">BOTELLA</div>
+                <div class="action-btn btn-especial" data-action="especial">ESPECIAL</div>
+                <div class="action-btn btn-patada" data-action="patada">PATADA</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Carga del fondo
+        const bgImage = new Image();
+        bgImage.src = "fondo.png";
+
+        // Carga de la imagen de la lata de cerveza
+        const lataImage = new Image();
+        lataImage.src = "lata.png";
+
+        // Carga de sprites del protagonista (Gusty)
+        const playerSprites = {
+            normal: new Image(),
+            pina:   new Image(),
+            botella: new Image(),
+            especial: new Image(),
+            patada: new Image(),
+            camina: new Image()
+        };
+        playerSprites.normal.src   = "normal.png";
+        playerSprites.pina.src     = "pina.png";
+        playerSprites.botella.src  = "botella.png";
+        playerSprites.especial.src = "especial.png";
+        playerSprites.patada.src   = "patada.png";
+        playerSprites.camina.src   = "caminand.png";
+
+        // Carga de sprites para NPC Tipo 1 (Uruguayo)
+        const npc1Sprites = {
+            idle:   new Image(),
+            walk:   new Image(),
+            hit:    new Image(),
+            hurt:   new Image(),
+            dead:   new Image()
+        };
+        npc1Sprites.idle.src = "urunormal.png";
+        npc1Sprites.walk.src = "urucamina.png";
+        npc1Sprites.hit.src  = "urupina.png";
+        npc1Sprites.hurt.src = "urugolpeado.png";
+        npc1Sprites.dead.src = "urumuerto.png";
+
+        // Carga de sprites para NPC Tipo 2 (Boca)
+        const npc2Sprites = {
+            idle:   new Image(),
+            walk:   new Image(),
+            hit:    new Image(),
+            hurt:   new Image(),
+            dead:   new Image()
+        };
+        npc2Sprites.idle.src = "bocanormal.png";
+        npc2Sprites.walk.src = "bocacorre.png";
+        npc2Sprites.hit.src = "bocapina.png";
+        npc2Sprites.hurt.src = "bocapolpeado.png";
+        npc2Sprites.dead.src = "bocamuerto.png";
+
+        // Carga de sprites para NPC Tipo 3 (Avanzado / Inteligente)
+        const npc3Sprites = {
+            idle:   new Image(),
+            walk:   new Image(),
+            hit:    new Image(),
+            hurt:   new Image(),
+            dead:   new Image()
+        };
+        npc3Sprites.idle.src = "mnormal.png";
+        npc3Sprites.walk.src = "mcaminando.png";
+        npc3Sprites.hit.src = "mpegando.png";
+        npc3Sprites.hurt.src = "mrecibiendo.png";
+        npc3Sprites.dead.src = "mmuerto.png";
+
+        let enemies = [];
+        let beers = [];
+
+        let spawnTimer = 0;
+        const spawnInterval = 10000;
+        let waveLevel = 1;
+
+        let beerSpawnTimer = 0;
+        let nextBeerInterval = Math.random() * 6000 + 12000;
+
+        let isGameOver = false;
+
+        function spawnEnemyRandomly() {
+            if (isGameOver) return;
+            const randType = Math.random();
+            let type = 1;
+            if (randType > 0.5 && randType <= 0.8) type = 2;
+            else if (randType > 0.8) type = 3;
+
+            let maxHp = 150;
+            if (type === 2) maxHp = 300;
+            if (type === 3) maxHp = 500;
+
+            const side = Math.random() < 0.5 ? -80 : canvas.width + 30;
+            const yPos = Math.floor(Math.random() * (410 - 240 + 1)) + 240;
+
+            enemies.push({
+                type: type,
+                x: side,
+                y: yPos,
+                z: 0,
+                drawWidth: 117,  
+                drawHeight: 175, 
+                facing: side < 0 ? "right" : "left",
+                hp: maxHp,
+                maxHp: maxHp,
+                speed: type === 3 ? 2.8 : (type === 2 ? 2.1 : 1.6),
+                action: "idle", 
+                actionTimer: 0
+            });
+        }
+
+        function spawnBeer() {
+            if (isGameOver) return;
+            const randomX = Math.floor(Math.random() * (canvas.width - 160)) + 80;
+            const randomY = Math.floor(Math.random() * (410 - 250 + 1)) + 250;
+
+            beers.push({
+                x: randomX,
+                y: randomY,
+                width: 100,  
+                height: 75,  
+                healAmount: 250,
+                lifeTimer: 10000 
+            });
+        }
+
+        function initGame() {
+            enemies = [];
+            beers = [];
+            spawnTimer = 0;
+            waveLevel = 1;
+            beerSpawnTimer = 0;
+            nextBeerInterval = Math.random() * 6000 + 12000;
+            isGameOver = false;
+
+            player.hp = 1000;
+            player.x = 100;
+            player.y = 320;
+            player.action = "normal";
+
+            spawnEnemyRandomly();
+            spawnEnemyRandomly();
+        }
+
+        const minY = 240; 
+        const maxY = 410; 
+
+        const player = {
+            x: 100,
+            y: 320,
+            z: 0,
+            speed: 4.5,
+            facing: "right",
+            action: "normal", 
+            actionTimer: 0,
+            drawWidth: 117,
+            drawHeight: 175,
+            hp: 1000,
+            maxHp: 1000
+        };
+
+        const keys = {};
+        window.addEventListener("keydown", (e) => {
+            const code = e.code;
+            keys[code] = true;
+
+            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(code)) {
+                e.preventDefault();
+            }
+
+            if (code === "KeyA") doPlayerAction("pina");
+            else if (code === "KeyS") doPlayerAction("botella");
+            else if (code === "KeyD") doPlayerAction("especial");
+            else if (code === "KeyW") doPlayerAction("patada");
+        });
+
+        window.addEventListener("keyup", (e) => {
+            keys[e.code] = false;
+        });
+
+        // Ejecuta una acción de ataque del jugador (usado por teclado y por botones táctiles)
+        function doPlayerAction(action) {
+            if (isGameOver) return;
+            if (player.action !== "normal" && player.action !== "camina") return;
+
+            if (action === "pina") {
+                player.action = "pina";
+                player.actionTimer = 15;
+                checkAttack(80, 50, 45);
+            } else if (action === "botella") {
+                player.action = "botella";
+                player.actionTimer = 20;
+                checkAttack(90, 55, 90);
+            } else if (action === "especial") {
+                player.action = "especial";
+                player.actionTimer = 25;
+                checkAttackSpecial(130, 70, 220);
+            } else if (action === "patada") {
+                player.action = "patada";
+                player.actionTimer = 20;
+                checkAttack(95, 60, 110);
+            }
+            if (navigator.vibrate) navigator.vibrate(15);
+        }
+
+        // --- Detección de dispositivo táctil ---
+        function enableTouchMode() {
+            document.body.classList.add("is-touch");
+        }
+        if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+            enableTouchMode();
+        }
+        window.addEventListener("touchstart", enableTouchMode, { once: true, passive: true });
+
+        // --- Aviso de rotación (sugerencia, no obligatorio) ---
+        function updateOrientationHint() {
+            const isPortrait = window.innerHeight > window.innerWidth;
+            document.body.classList.toggle("is-portrait", isPortrait);
+        }
+        updateOrientationHint();
+        window.addEventListener("resize", updateOrientationHint);
+        window.addEventListener("orientationchange", updateOrientationHint);
+
+        const rotateHintClose = document.getElementById("rotateHintClose");
+        if (rotateHintClose) {
+            rotateHintClose.addEventListener("click", () => {
+                document.body.classList.add("hint-dismissed");
+            });
+        }
+
+        // --- Joystick analógico ---
+        const joystickZone = document.getElementById("joystickZone");
+        const joystickStick = document.getElementById("joystickStick");
+        let joystickTouchId = null;
+        const joystickMaxDist = 34;
+
+        function resetJoystick() {
+            joystickTouchId = null;
+            joystickStick.style.transform = "translate(-50%, -50%)";
+            keys["ArrowUp"] = keys["ArrowDown"] = keys["ArrowLeft"] = keys["ArrowRight"] = false;
+        }
+
+        function handleJoystickMove(clientX, clientY) {
+            const rect = joystickZone.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.min(Math.hypot(dx, dy), joystickMaxDist);
+            const angle = Math.atan2(dy, dx);
+            const nx = Math.cos(angle) * dist;
+            const ny = Math.sin(angle) * dist;
+            joystickStick.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+
+            const deadzone = 10;
+            keys["ArrowLeft"]  = dx < -deadzone;
+            keys["ArrowRight"] = dx > deadzone;
+            keys["ArrowUp"]    = dy < -deadzone;
+            keys["ArrowDown"]  = dy > deadzone;
+        }
+
+        joystickZone.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            joystickTouchId = t.identifier;
+            handleJoystickMove(t.clientX, t.clientY);
+        }, { passive: false });
+
+        joystickZone.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                if (t.identifier === joystickTouchId) handleJoystickMove(t.clientX, t.clientY);
+            }
+        }, { passive: false });
+
+        function joystickTouchEnd(e) {
+            for (const t of e.changedTouches) {
+                if (t.identifier === joystickTouchId) resetJoystick();
+            }
+        }
+        joystickZone.addEventListener("touchend", joystickTouchEnd);
+        joystickZone.addEventListener("touchcancel", joystickTouchEnd);
+
+        // --- Botones de acción táctiles ---
+        document.querySelectorAll(".action-btn").forEach(btn => {
+            const action = btn.dataset.action;
+            btn.addEventListener("touchstart", (e) => {
+                e.preventDefault();
+                btn.classList.add("pressed");
+                doPlayerAction(action);
+            }, { passive: false });
+            btn.addEventListener("touchend", (e) => {
+                e.preventDefault();
+                btn.classList.remove("pressed");
+            }, { passive: false });
+        });
+
+        function checkRestartTap(clientX, clientY) {
+            if (!isGameOver) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (clientX - rect.left) * scaleX;
+            const mouseY = (clientY - rect.top) * scaleY;
+
+            const panelH = 190;
+            const panelY = canvas.height / 2 - panelH / 2 - 10;
+            const btnW = 210, btnH = 46;
+            const btnX = canvas.width / 2 - btnW / 2;
+            const btnY = panelY + panelH - btnH - 20;
+
+            if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
+                initGame();
+            }
+        }
+
+        canvas.addEventListener("click", (e) => checkRestartTap(e.clientX, e.clientY));
+        canvas.addEventListener("touchstart", (e) => {
+            if (!isGameOver) return;
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            checkRestartTap(t.clientX, t.clientY);
+        }, { passive: false });
+
+        function checkAttack(rangeX, rangeY, damage) {
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+
+                const distY = Math.abs(player.y - enemy.y);
+                const distX = Math.abs(player.x - enemy.x);
+                
+                if (distX < rangeX && distY < rangeY) {
+                    enemy.hp -= damage;
+                    if (enemy.hp <= 0) {
+                        enemy.hp = 0;
+                        enemy.action = "dead";
+                        enemy.actionTimer = 0;
+                    } else {
+                        enemy.action = "hurt";
+                        enemy.actionTimer = 12;
+                    }
+                }
+            });
+        }
+
+        function checkAttackSpecial(rangeX, rangeY, damage) {
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+
+                const distY = Math.abs(player.y - enemy.y);
+                const distX = Math.abs(player.x - enemy.x);
+                
+                if (distX < rangeX && distY < rangeY) {
+                    enemy.hp -= damage;
+                    if (enemy.hp <= 0) {
+                        enemy.hp = 0;
+                        enemy.action = "dead";
+                        enemy.actionTimer = 0;
+                    } else {
+                        enemy.action = "hurt";
+                        enemy.actionTimer = 18;
+                    }
+                }
+            });
+        }
+
+        let lastTime = performance.now();
+        function update(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            if (isGameOver) {
+                return;
+            }
+
+            spawnTimer += deltaTime;
+            if (spawnTimer >= spawnInterval) {
+                spawnTimer = 0;
+                waveLevel++;
+                let countToSpawn = Math.min(waveLevel, 4);
+                for(let i = 0; i < countToSpawn; i++) {
+                    spawnEnemyRandomly();
+                }
+            }
+
+            beerSpawnTimer += deltaTime;
+            if (beerSpawnTimer >= nextBeerInterval) {
+                beerSpawnTimer = 0;
+                nextBeerInterval = Math.random() * 8000 + 10000;
+                spawnBeer();
+            }
+
+            for (let i = beers.length - 1; i >= 0; i--) {
+                beers[i].lifeTimer -= deltaTime;
+                if (beers[i].lifeTimer <= 0) {
+                    beers.splice(i, 1);
+                }
+            }
+
+            let isMoving = false;
+            if (player.action === "normal" || player.action === "camina") {
+                if (keys["ArrowUp"] && player.y > minY) {
+                    player.y -= player.speed;
+                    isMoving = true;
+                }
+                if (keys["ArrowDown"] && player.y < maxY) {
+                    player.y += player.speed;
+                    isMoving = true;
+                }
+                if (keys["ArrowLeft"]) {
+                    player.x -= player.speed;
+                    player.facing = "left";
+                    isMoving = true;
+                }
+                if (keys["ArrowRight"]) {
+                    player.x += player.speed;
+                    player.facing = "right";
+                    isMoving = true;
+                }
+
+                player.action = isMoving ? "camina" : "normal";
+            }
+
+            if (player.x < 20) player.x = 20;
+            if (player.x > canvas.width - player.drawWidth) player.x = canvas.width - player.drawWidth;
+            if (player.y < minY) player.y = minY;
+            if (player.y > maxY) player.y = maxY;
+
+            if (player.action !== "normal" && player.action !== "camina") {
+                player.actionTimer--;
+                if (player.actionTimer <= 0) player.action = "normal";
+            }
+
+            for (let i = beers.length - 1; i >= 0; i--) {
+                const beer = beers[i];
+                const distX = Math.abs((player.x + player.drawWidth / 2) - (beer.x + beer.width / 2));
+                const distY = Math.abs(player.y - beer.y);
+
+                if (distX < 55 && distY < 35) {
+                    player.hp += beer.healAmount;
+                    if (player.hp > player.maxHp) player.hp = player.maxHp;
+                    beers.splice(i, 1);
+                }
+            }
+
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+
+                if (enemy.action !== "hurt" && enemy.action !== "hit") {
+                    let moved = false;
+
+                    let targetX = player.x;
+                    let targetY = player.y;
+                    
+                    if (enemy.type === 3) {
+                        targetY += (player.y > enemy.y ? 1 : -1) * 0.4;
+                    }
+
+                    if (enemy.x > targetX + 35) {
+                        enemy.x -= enemy.speed;
+                        enemy.facing = "left";
+                        moved = true;
+                    } else if (enemy.x < targetX - 35) {
+                        enemy.x += enemy.speed;
+                        enemy.facing = "right";
+                        moved = true;
+                    }
+
+                    if (enemy.y < targetY - 2) {
+                        enemy.y += enemy.speed * 0.7;
+                        moved = true;
+                    } else if (enemy.y > targetY + 2) {
+                        enemy.y -= enemy.speed * 0.7;
+                        moved = true;
+                    }
+
+                    enemy.action = moved ? "walk" : "idle";
+
+                    const distX = Math.abs(enemy.x - player.x);
+                    const distY = Math.abs(enemy.y - player.y);
+                    
+                    const attackRange = enemy.type === 3 ? 75 : (enemy.type === 2 ? 65 : 60);
+                    if (distX < attackRange && distY < 30) {
+                        enemy.action = "hit";
+                        enemy.actionTimer = enemy.type === 3 ? 12 : 15;
+                        
+                        const npcDamage = enemy.type === 3 ? 35 : (enemy.type === 2 ? 25 : 15);
+                        player.hp -= npcDamage;
+                        if (player.hp <= 0) {
+                            player.hp = 0;
+                            isGameOver = true;
+                        }
+                    }
+                } else {
+                    enemy.actionTimer--;
+                    if (enemy.actionTimer <= 0) {
+                        enemy.action = "idle";
+                    }
+                }
+            });
+        }
+
+        function drawShadow(entity) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.beginPath();
+            ctx.ellipse(entity.x + (entity.drawWidth / 2), entity.y + 5, entity.drawWidth / 2.5, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawUI() {
+            const barWidth = 260;
+            const barHeight = 26;
+            const barX = 20;
+            const barY = 18;
+            const panelPad = 8;
+
+            // Panel de fondo con borde biselado
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 3;
+            const panelGrad = ctx.createLinearGradient(0, barY - panelPad, 0, barY + barHeight + panelPad);
+            panelGrad.addColorStop(0, "rgba(35, 35, 48, 0.92)");
+            panelGrad.addColorStop(1, "rgba(18, 18, 26, 0.92)");
+            ctx.fillStyle = panelGrad;
+            roundRect(barX - panelPad, barY - panelPad - 14, barWidth + panelPad * 2, barHeight + panelPad * 2 + 14, 10);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.strokeStyle = "rgba(255, 183, 77, 0.5)";
+            ctx.lineWidth = 1;
+            roundRect(barX - panelPad, barY - panelPad - 14, barWidth + panelPad * 2, barHeight + panelPad * 2 + 14, 10);
+            ctx.stroke();
+
+            // Etiqueta GUSTY
+            ctx.fillStyle = "#ffb74d";
+            ctx.font = "bold 12px sans-serif";
+            ctx.textAlign = "left";
+            ctx.shadowColor = "#000";
+            ctx.shadowBlur = 4;
+            ctx.fillText("GUSTY", barX, barY - 3);
+            ctx.shadowBlur = 0;
+
+            // Fondo de la barra (hueco)
+            ctx.fillStyle = "#0a0a0f";
+            roundRect(barX, barY, barWidth, barHeight, 6);
+            ctx.fill();
+            ctx.save();
+            roundRect(barX, barY, barWidth, barHeight, 6);
+            ctx.clip();
+
+            ctx.strokeStyle = "rgba(0,0,0,0.6)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barX + 1, barY + 1, barWidth - 2, barHeight - 2);
+
+            // Relleno con degrade + segmentos sutiles
+            const hpRatio = player.hp / player.maxHp;
+            const hpWidth = Math.max(0, hpRatio * barWidth);
+            const lowHp = hpRatio < 0.3;
+            const gradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
+            if (lowHp) {
+                gradient.addColorStop(0, '#ff8a65');
+                gradient.addColorStop(0.5, '#e53935');
+                gradient.addColorStop(1, '#8e0000');
+            } else {
+                gradient.addColorStop(0, '#ffab40');
+                gradient.addColorStop(0.5, '#ff7043');
+                gradient.addColorStop(1, '#bf360c');
+            }
+            ctx.fillStyle = gradient;
+            ctx.fillRect(barX, barY, hpWidth, barHeight);
+
+            // Brillo superior
+            ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+            ctx.fillRect(barX, barY + 2, hpWidth, barHeight / 3);
+
+            // Líneas segmentadas cada 10%
+            ctx.strokeStyle = "rgba(0,0,0,0.25)";
+            ctx.lineWidth = 1;
+            for (let seg = 1; seg < 10; seg++) {
+                const sx = barX + (barWidth / 10) * seg;
+                ctx.beginPath();
+                ctx.moveTo(sx, barY);
+                ctx.lineTo(sx, barY + barHeight);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            ctx.strokeStyle = "#ffcc80";
+            ctx.lineWidth = 1.5;
+            roundRect(barX, barY, barWidth, barHeight, 6);
+            ctx.stroke();
+
+            // Texto HP numérico
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "#000";
+            ctx.shadowBlur = 5;
+            ctx.fillText(`${Math.max(0, Math.ceil(player.hp))} / ${player.maxHp}`, barX + barWidth / 2, barY + barHeight / 2 + 4);
+            ctx.shadowBlur = 0;
+            ctx.textAlign = "left";
+
+            // --- Cartel de oleada ---
+            const badgeW = 118, badgeH = 32, badgeX = canvas.width - badgeW - 16, badgeY = 16;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetY = 3;
+            const badgeGrad = ctx.createLinearGradient(0, badgeY, 0, badgeY + badgeH);
+            badgeGrad.addColorStop(0, "rgba(50, 22, 15, 0.92)");
+            badgeGrad.addColorStop(1, "rgba(20, 10, 8, 0.92)");
+            ctx.fillStyle = badgeGrad;
+            roundRect(badgeX, badgeY, badgeW, badgeH, 8);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.strokeStyle = "#ff5722";
+            ctx.lineWidth = 1.5;
+            roundRect(badgeX, badgeY, badgeW, badgeH, 8);
+            ctx.stroke();
+
+            ctx.fillStyle = "#ff8a50";
+            ctx.font = "bold 14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(255, 87, 34, 0.7)";
+            ctx.shadowBlur = 8;
+            ctx.fillText(`OLEADA ${waveLevel}`, badgeX + badgeW / 2, badgeY + badgeH / 2 + 5);
+            ctx.shadowBlur = 0;
+            ctx.textAlign = "left";
+        }
+
+        // Utilidad: rectángulo con esquinas redondeadas
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        function drawEnemyHealthBars() {
+            enemies.forEach(enemy => {
+                if (enemy.action === "dead") return;
+
+                const barW = 58;
+                const barH = 6;
+                const bX = enemy.x + (enemy.drawWidth / 2) - (barW / 2);
+                const bY = enemy.y - enemy.drawHeight - 13;
+
+                ctx.save();
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.shadowBlur = 4;
+                ctx.fillStyle = "rgba(10,10,14,0.85)";
+                roundRect(bX - 2, bY - 2, barW + 4, barH + 4, 4);
+                ctx.fill();
+                ctx.restore();
+
+                ctx.fillStyle = "#1a1a1a";
+                roundRect(bX, bY, barW, barH, 3);
+                ctx.fill();
+
+                const eHpWidth = Math.max(0, (enemy.hp / enemy.maxHp) * barW);
+                const baseColor = enemy.type === 3 ? ["#f06292", "#ad1457"] : (enemy.type === 2 ? ["#ffb74d", "#e65100"] : ["#4fc3f7", "#0d47a1"]);
+                const eGrad = ctx.createLinearGradient(bX, bY, bX, bY + barH);
+                eGrad.addColorStop(0, baseColor[0]);
+                eGrad.addColorStop(1, baseColor[1]);
+                ctx.save();
+                roundRect(bX, bY, barW, barH, 3);
+                ctx.clip();
+                ctx.fillStyle = eGrad;
+                ctx.fillRect(bX, bY, eHpWidth, barH);
+                ctx.fillStyle = "rgba(255,255,255,0.3)";
+                ctx.fillRect(bX, bY, eHpWidth, barH / 2.5);
+                ctx.restore();
+
+                ctx.strokeStyle = "rgba(255,255,255,0.25)";
+                ctx.lineWidth = 1;
+                roundRect(bX, bY, barW, barH, 3);
+                ctx.stroke();
+            });
+        }
+
+        function drawGameOverScreen() {
+            const cx = canvas.width / 2, cy = canvas.height / 2;
+
+            const vign = ctx.createRadialGradient(cx, cy, 40, cx, cy, canvas.width / 1.1);
+            vign.addColorStop(0, "rgba(20, 0, 0, 0.55)");
+            vign.addColorStop(1, "rgba(0, 0, 0, 0.9)");
+            ctx.fillStyle = vign;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Panel central
+            const panelW = 400, panelH = 190, panelX = cx - panelW / 2, panelY = cy - panelH / 2 - 10;
+            ctx.save();
+            ctx.shadowColor = "rgba(0,0,0,0.9)";
+            ctx.shadowBlur = 25;
+            const panelGrad = ctx.createLinearGradient(0, panelY, 0, panelY + panelH);
+            panelGrad.addColorStop(0, "rgba(40, 15, 15, 0.9)");
+            panelGrad.addColorStop(1, "rgba(15, 8, 8, 0.92)");
+            ctx.fillStyle = panelGrad;
+            roundRect(panelX, panelY, panelW, panelH, 14);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.strokeStyle = "rgba(255, 82, 82, 0.6)";
+            ctx.lineWidth = 2;
+            roundRect(panelX, panelY, panelW, panelH, 14);
+            ctx.stroke();
+
+            ctx.save();
+            ctx.shadowColor = "#ff1744";
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = "#ff5252";
+            ctx.font = "bold 30px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", cx, panelY + 55);
+            ctx.restore();
+
+            ctx.fillStyle = "#ccc";
+            ctx.font = "15px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Te rodearon los hinchas en la esquina.", cx, panelY + 85);
+
+            ctx.fillStyle = "#ff8a50";
+            ctx.font = "bold 14px sans-serif";
+            ctx.fillText(`Llegaste hasta la oleada ${waveLevel}`, cx, panelY + 110);
+
+            const btnW = 210, btnH = 46;
+            const btnX = cx - btnW / 2;
+            const btnY = panelY + panelH - btnH - 20;
+
+            const pulse = 1 + Math.sin(Date.now() / 260) * 0.03;
+            ctx.save();
+            ctx.translate(cx, btnY + btnH / 2);
+            ctx.scale(pulse, pulse);
+            ctx.translate(-cx, -(btnY + btnH / 2));
+
+            ctx.shadowColor = "rgba(255, 87, 34, 0.7)";
+            ctx.shadowBlur = 16;
+            const btnGrad = ctx.createLinearGradient(0, btnY, 0, btnY + btnH);
+            btnGrad.addColorStop(0, "#ff8a50");
+            btnGrad.addColorStop(1, "#d84315");
+            ctx.fillStyle = btnGrad;
+            roundRect(btnX, btnY, btnW, btnH, 10);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.strokeStyle = "#ffccbc";
+            ctx.lineWidth = 2;
+            roundRect(btnX, btnY, btnW, btnH, 10);
+            ctx.stroke();
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 15px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("REINICIAR PARTIDA", cx, btnY + btnH / 2 + 5);
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (bgImage.complete && bgImage.naturalWidth !== 0) {
+                ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            }
+
+            const entities = [];
+            entities.push({ type: 'player', data: player });
+            enemies.forEach(enemy => entities.push({ type: 'npc', data: enemy }));
+            beers.forEach(beer => entities.push({ type: 'beer', data: beer }));
+            
+            entities.sort((a, b) => a.data.y - b.data.y);
+
+            entities.forEach(entity => {
+                const obj = entity.data;
+
+                if (entity.type === 'beer') {
+                    const pulse = 0.85 + Math.sin(Date.now() / 220) * 0.15;
+
+                    ctx.save();
+                    ctx.shadowColor = "#ffeb3b";
+                    ctx.shadowBlur = 26 * pulse;
+                    ctx.fillStyle = `rgba(255, 224, 90, ${0.35 * pulse})`;
+                    ctx.beginPath();
+                    ctx.arc(obj.x + obj.width / 2, obj.y - obj.height / 2, (obj.width / 1.15) * pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // anillo giratorio decorativo
+                    ctx.save();
+                    ctx.translate(obj.x + obj.width / 2, obj.y - obj.height / 2);
+                    ctx.rotate((Date.now() / 900) % (Math.PI * 2));
+                    ctx.strokeStyle = "rgba(255, 235, 150, 0.55)";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 8]);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, obj.width / 1.55, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.restore();
+
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                    ctx.beginPath();
+                    ctx.ellipse(obj.x + obj.width / 2, obj.y + 6, obj.width / 2.2, 7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (lataImage.complete && lataImage.naturalWidth !== 0) {
+                        ctx.drawImage(lataImage, obj.x, obj.y - obj.height, obj.width, obj.height);
+                    }
+
+                    if (obj.lifeTimer <= 5000) {
+                        if (Math.floor(Date.now() / 200) % 2 === 0) {
+                            ctx.save();
+                            ctx.font = "bold 14px sans-serif";
+                            ctx.textAlign = "center";
+                            ctx.lineWidth = 3;
+                            ctx.strokeStyle = "rgba(0,0,0,0.8)";
+                            ctx.strokeText("¡APURATE!", obj.x + obj.width / 2, obj.y - obj.height - 12);
+                            ctx.fillStyle = "#ff1744";
+                            ctx.shadowColor = "#ff1744";
+                            ctx.shadowBlur = 10;
+                            ctx.fillText("¡APURATE!", obj.x + obj.width / 2, obj.y - obj.height - 12);
+                            ctx.restore();
+                        }
+                    }
+                    return;
+                }
+                
+                // Sombra corregida para NPC muertos: ajustada a su nuevo centro y perfil horizontal en el suelo
+                if (entity.type === 'npc' && obj.action === 'dead') {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+                    ctx.beginPath();
+                    ctx.ellipse(obj.x + (obj.drawWidth / 2), obj.y - 15, obj.drawWidth / 2.0, 8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    drawShadow(obj);
+                }
+
+                ctx.save();
+                ctx.translate(obj.x, obj.y);
+                
+                const sw = obj.drawWidth;
+                const sh = obj.drawHeight;
+
+                if (obj.facing === "left") {
+                    ctx.translate(sw, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                if (entity.type === 'player') {
+                    const currentImg = playerSprites[obj.action] || playerSprites["normal"];
+                    if (currentImg.complete && currentImg.naturalWidth !== 0) {
+                        ctx.drawImage(currentImg, -sw / 2, -sh, sw, sh);
+                    }
+                } else {
+                    let spritesCollection = npc1Sprites;
+                    if (obj.type === 2) spritesCollection = npc2Sprites;
+                    if (obj.type === 3) spritesCollection = npc3Sprites;
+
+                    const currentNpcImg = spritesCollection[obj.action] || spritesCollection["idle"];
+                    
+                    if (currentNpcImg.complete && currentNpcImg.naturalWidth !== 0) {
+                        ctx.drawImage(currentNpcImg, -sw / 2, -sh, sw, sh);
+                    }
+                }
+                ctx.restore();
+            });
+
+            drawEnemyHealthBars();
+            drawUI();
+
+            if (isGameOver) {
+                drawGameOverScreen();
+            }
+        }
+
+        function gameLoop(currentTime) {
+            update(currentTime);
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = () => {
+            initGame();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
