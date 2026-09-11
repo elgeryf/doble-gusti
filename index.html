@@ -6,7 +6,7 @@
     <title>Beat 'em Up - Gusty vs Hinchas</title>
     <style>
         body {
-            background-color: #060608;
+            background-color: #040406;
             color: #fff;
             display: flex;
             flex-direction: column;
@@ -28,9 +28,9 @@
         }
         .game-container {
             position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-            border: 4px solid #333;
-            border-radius: 8px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+            border: 3px solid #222;
+            border-radius: 10px;
             overflow: hidden;
             max-width: 100vw;
             max-height: 85vh;
@@ -42,13 +42,14 @@
             height: auto;
         }
         
+        /* Pantalla de bienvenida mejorada */
         #start-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(6, 6, 8, 0.95);
+            background: radial-gradient(circle, rgba(20,20,35,0.95) 0%, rgba(5,5,10,0.98) 100%);
             z-index: 100;
             display: flex;
             flex-direction: column;
@@ -59,25 +60,39 @@
         }
         #start-screen h2 {
             color: #ff5722;
-            font-size: 1.6rem;
-            margin-bottom: 10px;
+            font-size: 2.2rem;
+            margin: 0 0 10px 0;
+            text-shadow: 0 4px 10px rgba(255,87,34,0.4);
+            letter-spacing: 3px;
+        }
+        #start-screen .subtitle {
+            color: #ffb74d;
+            font-size: 1rem;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
         #start-screen p {
-            color: #ccc;
+            color: #aaa;
             font-size: 0.95rem;
-            margin-bottom: 25px;
-            max-width: 300px;
+            margin-bottom: 30px;
+            max-width: 380px;
+            line-height: 1.4;
         }
         .start-btn {
-            background: #ff5722;
+            background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
             color: white;
             border: 2px solid #ffb74d;
-            padding: 14px 28px;
+            padding: 16px 32px;
             font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 87, 34, 0.5);
+            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.5);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .start-btn:active {
+            transform: scale(0.96);
         }
 
         .touch-controls {
@@ -114,7 +129,6 @@
             transform: translate(0, 0);
         }
         
-        /* Contenedor de botones de acción relocalizado sin encimarse */
         .touch-buttons {
             position: absolute;
             right: 15px;
@@ -137,7 +151,6 @@
             touch-action: none;
         }
         
-        /* Posiciones totalmente separadas en forma de diamante de golpes */
         #btn-pina { width: 48px; height: 48px; bottom: 50px; left: 10px; background: rgba(255, 87, 34, 0.6); }
         #btn-botella { width: 48px; height: 48px; bottom: 5px; left: 60px; background: rgba(255, 152, 0, 0.6); }
         #btn-patada { width: 48px; height: 48px; bottom: 50px; right: 10px; background: rgba(33, 150, 243, 0.6); border-color: #90caf9; }
@@ -232,10 +245,13 @@
 
     <h1>Beat 'em Up - Gusty vs Hinchas</h1>
     <div class="game-container" id="gameContainer">
+        
+        <!-- Pantalla de Bienvenida solicitada -->
         <div id="start-screen">
             <h2>GUSTY VS HINCHAS</h2>
-            <p>Iniciar en pantalla completa y activar sonido.</p>
-            <button class="start-btn" id="start-game-btn">INICIAR EN PANTALLA COMPLETA</button>
+            <div class="subtitle">Edición Callejera</div>
+            <p>Prepárate para la acción. Entra en modo inmersivo a pantalla completa y enciende el audio para disfrutar la música y los efectos.</p>
+            <button class="start-btn" id="start-game-btn">INICIAR JUEGO EN PANTALLA COMPLETA</button>
         </div>
 
         <canvas id="gameCanvas" width="800" height="450"></canvas>
@@ -435,6 +451,7 @@
             document.getElementById("rotate-overlay").style.display = "none";
         });
 
+        // Evento para el botón de bienvenida / pantalla completa
         document.getElementById("start-game-btn").addEventListener("click", () => {
             gameStarted = true;
             initAudio();
@@ -913,78 +930,125 @@
             ctx.fill();
         }
 
+        // --- BARRAS DE ENERGÍA REDISEÑADAS ---
         function drawUI() {
-            const barWidth = 260;
+            // HUD del Jugador (Esquina Superior Izquierda)
+            const barWidth = 240;
             const barHeight = 22;
             const barX = 20;
             const barY = 20;
 
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
-            ctx.fillRect(barX - 3, barY - 3, barWidth + 6, barHeight + 6);
+            // Marco decorativo estilo Arcade con biselado y sombra
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = "rgba(10, 10, 18, 0.85)";
+            ctx.beginPath();
+            ctx.roundRect(barX - 4, barY - 4, barWidth + 8, barHeight + 14, 6);
+            ctx.fill();
             ctx.shadowBlur = 0;
 
-            ctx.fillStyle = "#111";
-            ctx.fillRect(barX, barY, barWidth, barHeight);
+            // Texto de Identificación y Estado
+            ctx.fillStyle = "#ffb74d";
+            ctx.font = "bold 11px 'Segoe UI', sans-serif";
+            ctx.fillText("GUSTY (JUGADOR 1)", barX, barY - 6);
 
+            // Fondo de la barra de vida
+            ctx.fillStyle = "#1a0805";
+            ctx.beginPath();
+            ctx.roundRect(barX, barY, barWidth, barHeight, 4);
+            ctx.fill();
+
+            // Rellenador de barra con gradiente dinámico y brillo interior
             const hpWidth = Math.max(0, (player.hp / player.maxHp) * barWidth);
-            const gradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
-            gradient.addColorStop(0, '#ff7043');
-            gradient.addColorStop(0.5, '#f4511e');
-            gradient.addColorStop(1, '#bf360c');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(barX, barY, hpWidth, barHeight);
+            if (hpWidth > 0) {
+                const gradient = ctx.createLinearGradient(barX, barY, barX, barY + barHeight);
+                gradient.addColorStop(0, '#ff7043');
+                gradient.addColorStop(0.5, '#e64a19');
+                gradient.addColorStop(1, '#bf360c');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.roundRect(barX, barY, hpWidth, barHeight, 4);
+                ctx.fill();
 
+                // Brillo superior de la barra
+                ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+                ctx.fillRect(barX + 2, barY + 2, hpWidth - 4, 3);
+            }
+
+            // Borde exterior elegante
             ctx.strokeStyle = "#ffb74d";
             ctx.lineWidth = 1.5;
-            ctx.strokeRect(barX, barY, barWidth, barHeight);
+            ctx.beginPath();
+            ctx.roundRect(barX, barY, barWidth, barHeight, 4);
+            ctx.stroke();
 
+            // Texto numérico de salud exacta opcional dentro del medidor
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 12px sans-serif";
-            ctx.fillText("GUSTY", barX + 10, barY + 15);
+            ctx.font = "bold 10px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(`${player.hp} / ${player.maxHp}`, barX + (barWidth / 2), barY + 15);
+            ctx.textAlign = "left"; // Reset align
 
-            ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
-            ctx.fillRect(canvas.width - 135, 17, 115, 28);
+            // Oleada (Esquina Superior Derecha)
+            ctx.fillStyle = "rgba(10, 10, 18, 0.85)";
+            ctx.beginPath();
+            ctx.roundRect(canvas.width - 135, 16, 115, 30, 6);
+            ctx.fill();
             ctx.strokeStyle = "#ff5722";
-            ctx.strokeRect(canvas.width - 135, 17, 115, 28);
-            ctx.fillStyle = "#ff5722";
-            ctx.font = "bold 13px sans-serif";
-            ctx.fillText(`OLEADA: ${waveLevel}`, canvas.width - 122, 35);
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(canvas.width - 135, 16, 115, 30, 6);
+            ctx.stroke();
 
+            ctx.fillStyle = "#ff5722";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText(`OLEADA: ${waveLevel}`, canvas.width - 120, 36);
+
+            // Barra de Jefe (Si está activo)
             const activeBoss = enemies.find(e => (e.type === 'boss1' || e.type === 'boss2') && e.action !== 'dead');
             if (activeBoss) {
-                const bossBarW = 340;
-                const bossBarH = 18;
+                const bossBarW = 320;
+                const bossBarH = 20;
                 const bossBarX = (canvas.width / 2) - (bossBarW / 2);
                 const bossBarY = 20;
 
-                ctx.fillStyle = "rgba(20, 20, 30, 0.85)";
-                ctx.fillRect(bossBarX - 3, bossBarY - 3, bossBarW + 6, bossBarH + 6);
+                ctx.fillStyle = "rgba(10, 10, 18, 0.9)";
+                ctx.beginPath();
+                ctx.roundRect(bossBarX - 4, bossBarY - 14, bossBarW + 8, bossBarH + 20, 6);
+                ctx.fill();
+
                 ctx.fillStyle = "#111";
-                ctx.fillRect(bossBarX, bossBarY, bossBarW, bossBarH);
+                ctx.beginPath();
+                ctx.roundRect(bossBarX, bossBarY, bossBarW, bossBarH, 4);
+                ctx.fill();
 
                 const bHpWidth = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * bossBarW);
                 const bossGradient = ctx.createLinearGradient(bossBarX, bossBarY, bossBarX, bossBarY + bossBarH);
                 
                 if (activeBoss.type === 'boss1') {
                     bossGradient.addColorStop(0, '#e53935');
-                    bossGradient.addColorStop(1, '#b71c1c');
+                    bossGradient.addColorStop(1, '#8e0000');
                 } else {
                     bossGradient.addColorStop(0, '#ffeb3b');
                     bossGradient.addColorStop(1, '#f57f17');
                 }
 
                 ctx.fillStyle = bossGradient;
-                ctx.fillRect(bossBarX, bossBarY, bHpWidth, bossBarH);
-                ctx.strokeStyle = activeBoss.type === 'boss1' ? "#ff8a80" : "#fff59d";
-                ctx.strokeRect(bossBarX, bossBarY, bossBarW, bossBarH);
+                ctx.beginPath();
+                ctx.roundRect(bossBarX, bossBarY, bHpWidth, bossBarH, 4);
+                ctx.fill();
 
-                ctx.fillStyle = activeBoss.type === 'boss1' ? "#fff" : "#111";
-                ctx.font = "bold 11px sans-serif";
+                ctx.strokeStyle = activeBoss.type === 'boss1' ? "#ff8a80" : "#fff59d";
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(bossBarX, bossBarY, bossBarW, bossBarH, 4);
+                ctx.stroke();
+
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 10px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(activeBoss.type === 'boss1' ? "BOSS: MATURANA (EL ROJO)" : "BOSS: MATURANA BOSTERO", bossBarX + (bossBarW / 2), bossBarY + 13);
+                ctx.fillText(activeBoss.type === 'boss1' ? "⚠️ BOSS: MATURANA (EL ROJO)" : "⚠️ BOSS: MATURANA BOSTERO", bossBarX + (bossBarW / 2), bossBarY - 2);
                 ctx.textAlign = "left";
             }
         }
@@ -992,14 +1056,14 @@
         function drawEnemyHealthBars() {
             enemies.forEach(enemy => {
                 if (enemy.action === "dead" || enemy.type === 'boss1' || enemy.type === 'boss2') return;
-                const barW = 55;
+                const barW = 50;
                 const barH = 5;
                 const bX = enemy.x + (enemy.drawWidth / 2) - (barW / 2);
                 const bY = enemy.y - enemy.drawHeight - 12;
 
-                ctx.fillStyle = "rgba(0,0,0,0.7)";
+                ctx.fillStyle = "rgba(0,0,0,0.6)";
                 ctx.fillRect(bX - 1, bY - 1, barW + 2, barH + 2);
-                ctx.fillStyle = "#222";
+                ctx.fillStyle = "#111";
                 ctx.fillRect(bX, bY, barW, barH);
 
                 const eHpWidth = Math.max(0, (enemy.hp / enemy.maxHp) * barW);
@@ -1011,16 +1075,16 @@
         }
 
         function drawGameOverScreen() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = "#ff5252";
-            ctx.font = "bold 36px sans-serif";
+            ctx.font = "bold 34px sans-serif";
             ctx.textAlign = "center";
             ctx.fillText("¡GUSTY CAYÓ EN COMBATE!", canvas.width / 2, canvas.height / 2 - 45);
 
             ctx.fillStyle = "#ccc";
-            ctx.font = "16px sans-serif";
+            ctx.font = "15px sans-serif";
             ctx.fillText("Te rodearon los hinchas en la esquina.", canvas.width / 2, canvas.height / 2 - 10);
 
             const btnX = canvas.width / 2 - 100;
@@ -1029,14 +1093,19 @@
             const btnH = 45;
 
             ctx.fillStyle = "#ff5722";
-            ctx.fillRect(btnX, btnY, btnW, btnH);
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY, btnW, btnH, 8);
+            ctx.fill();
             ctx.strokeStyle = "#ffb74d";
             ctx.lineWidth = 2;
-            ctx.strokeRect(btnX, btnY, btnW, btnH);
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY, btnW, btnH, 8);
+            ctx.stroke();
 
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 15px sans-serif";
+            ctx.font = "bold 14px sans-serif";
             ctx.fillText("REINICIAR PARTIDA", canvas.width / 2, btnY + 27);
+            ctx.textAlign = "left";
         }
 
         function draw() {
