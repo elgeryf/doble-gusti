@@ -780,12 +780,8 @@
         function updateInitialsSelector() {
             if (keys["ArrowUp"] && !stickPrev.up) cycleInitialLetter(1);
             if (keys["ArrowDown"] && !stickPrev.down) cycleInitialLetter(-1);
-            if (keys["ArrowLeft"] && !stickPrev.left) initialsSlot = Math.max(0, initialsSlot - 1);
-            if (keys["ArrowRight"] && !stickPrev.right) initialsSlot = Math.min(2, initialsSlot + 1);
             stickPrev.up = keys["ArrowUp"];
             stickPrev.down = keys["ArrowDown"];
-            stickPrev.left = keys["ArrowLeft"];
-            stickPrev.right = keys["ArrowRight"];
         }
 
         function cycleInitialLetter(dir) {
@@ -971,12 +967,33 @@
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            const btnX = canvas.width / 2 - 100;
-            const btnY = canvas.height / 2 + 130;
-            const btnW = 200;
+            const btnX = canvas.width / 2 - 115;
+            const btnY = canvas.height - 55;
+            const btnW = 230;
             const btnH = 40;
 
             if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH) {
+                initGame();
+            }
+        });
+
+        canvas.addEventListener("touchend", (e) => {
+            if (gameState !== 'gameover') return;
+            const touch = e.changedTouches[0];
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const touchX = (touch.clientX - rect.left) * scaleX;
+            const touchY = (touch.clientY - rect.top) * scaleY;
+
+            const btnX = canvas.width / 2 - 115;
+            const btnY = canvas.height - 55;
+            const btnW = 230;
+            const btnH = 40;
+
+            if (touchX >= btnX && touchX <= btnX + btnW && touchY >= btnY && touchY <= btnY + btnH) {
+                e.preventDefault();
+                initAudio();
                 initGame();
             }
         });
@@ -1331,8 +1348,8 @@
             ctx.fillText(`Puntaje obtenido: ${score} pts`, canvas.width / 2, 120);
 
             if (isMobile) {
-                ctx.fillText("Joystick ↑↓ para cambiar letra, ◀▶ para moverte", canvas.width / 2, 155);
-                ctx.fillText("Botón A confirma · Botón K borra/vuelve", canvas.width / 2, 175);
+                ctx.fillText("Joystick ↑↓ para cambiar la letra", canvas.width / 2, 155);
+                ctx.fillText("Botón A confirma · Botón K vuelve atrás", canvas.width / 2, 175);
 
                 const slotW = 60, slotH = 70, gap = 14;
                 const totalW = slotW * 3 + gap * 2;
@@ -1410,9 +1427,9 @@
                 ctx.fillText(text, canvas.width / 2 - 110, startY + (i * 26));
             }
 
-            const btnX = canvas.width / 2 - 100;
+            const btnX = canvas.width / 2 - 115;
             const btnY = canvas.height - 55;
-            const btnW = 200;
+            const btnW = 230;
             const btnH = 40;
 
             ctx.fillStyle = "#ff5722";
@@ -1422,8 +1439,8 @@
             ctx.strokeRect(btnX, btnY, btnW, btnH);
 
             ctx.fillStyle = "#fff";
-            ctx.font = "bold 14px sans-serif";
-            ctx.fillText("REINICIAR PARTIDA", canvas.width / 2, btnY + 25);
+            ctx.font = "bold 13px sans-serif";
+            ctx.fillText("¡ME VENGARÉ, MATURANA!", canvas.width / 2, btnY + 25);
             ctx.textAlign = "left";
         }
 
