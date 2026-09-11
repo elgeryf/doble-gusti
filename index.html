@@ -241,6 +241,7 @@
         let audioCtx = null;
         let musicTimer = null;
         let musicNoteIndex = 0;
+        let isGameOver = false;
 
         function initAudio() {
             if (!audioCtx) {
@@ -567,6 +568,7 @@
         let playerInitials = "";
 
         function checkHighScore(finalScore) {
+            isGameOver = true;
             if (highScores.length < 5 || finalScore > highScores[highScores.length - 1].score) {
                 gameState = 'input_initials';
                 playerInitials = "";
@@ -647,6 +649,7 @@
             beerSpawnTimer = 0;
             nextBeerInterval = Math.random() * 6000 + 12000;
             gameState = 'playing';
+            isGameOver = false;
 
             player.hp = 1000;
             player.x = 100;
