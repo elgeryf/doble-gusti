@@ -35,7 +35,7 @@
             overflow: hidden;
             max-width: 100vw;
             max-height: 85vh;
-            aspect-ratio: 800 / 450; /* Mantiene la proporción del canvas */
+            aspect-ratio: 800 / 450;
             background: #000;
         }
         canvas {
@@ -60,6 +60,7 @@
             text-align: center;
             padding: 15px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
         .menu-screen h2 {
             color: #ff5722;
@@ -85,8 +86,8 @@
         /* Tabla de Récords CSS */
         .high-scores-table {
             width: 100%;
-            max-width: 320px;
-            margin-bottom: 20px;
+            max-width: 350px;
+            margin-bottom: 15px;
             border-collapse: collapse;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
@@ -94,27 +95,29 @@
         }
         .high-scores-table th, .high-scores-table td {
             text-align: left;
-            padding: 8px 12px;
-            font-size: 0.85rem;
+            padding: 6px 10px;
+            font-size: 0.8rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .high-scores-table th { color: #ffb74d; background: rgba(0,0,0,0.2); }
         .high-scores-table td.rank { color: #ff5722; font-weight: bold; width: 30px; }
         .high-scores-table td.score { color: #fff; text-align: right; font-family: monospace; }
         .high-scores-table tr:last-child td { border-bottom: none; }
+        .high-scores-table tr.current-player td { color: #4caf50; font-weight: bold; }
 
         /* Input para nombre */
         #playerNameInput {
             background: rgba(0,0,0,0.5);
             border: 1px solid #555;
             color: #fff;
-            padding: 10px;
+            padding: 8px;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             text-align: center;
-            margin-bottom: 15px;
-            width: 200px;
+            margin-bottom: 10px;
+            width: 100px;
             font-family: inherit;
+            text-transform: uppercase;
         }
         #playerNameInput:focus { outline: none; border-color: #ff5722; }
 
@@ -123,8 +126,8 @@
             background: linear-gradient(135deg, #ff5722 0%, #e64a19 100%);
             color: white;
             border: 2px solid #ffb74d;
-            padding: 12px 28px;
-            font-size: 1rem;
+            padding: 10px 24px;
+            font-size: 0.9rem;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
@@ -136,8 +139,26 @@
         .menu-btn:active { transform: scale(0.96); }
         .menu-btn:disabled { background: #555; border-color: #777; color: #ccc; cursor: not-allowed; box-shadow: none;}
 
+        /* Contadores Pequeños en HUD */
+        .kill-counter-hud {
+            position: absolute;
+            top: 50px; /* Debajo de oleada */
+            right: 16px;
+            background: rgba(10, 10, 18, 0.85);
+            border: 1px solid #ff5722;
+            border-radius: 6px;
+            padding: 4px 8px;
+            text-align: right;
+            font-size: 10px;
+            color: #fff;
+            pointer-events: none;
+            display: none; /* Se muestra al iniciar */
+            line-height: 1.3;
+        }
+        .kill-counter-hud .total { color: #ffb74d; font-weight: bold; font-size: 11px; }
+        .kill-counter-hud .type { color: #aaa; }
 
-        /* --- Controles Táctiles (Mismo diseño) --- */
+        /* --- Controles Táctiles (Diseño previo) --- */
         .touch-controls {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; display: none; z-index: 50;
@@ -166,21 +187,23 @@
         #btn-patada { width: 46px; height: 46px; bottom: 48px; right: 10px; background: rgba(33, 150, 243, 0.6); border-color: #90caf9; }
         #btn-especial { width: 50px; height: 50px; top: 2px; left: 75px; background: rgba(233, 30, 99, 0.7); border-color: #ff80ab; font-size: 0.6rem; }
 
-        /* --- Controles Teclado (Mismo diseño) --- */
+        /* --- Controles Teclado (Diseño previo) --- */
         .arcade-controls {
             position: absolute; bottom: 10px; left: 10px; right: 10px;
             display: flex; justify-content: space-between; pointer-events: none; opacity: 0.8; z-index: 40;
         }
         .pad-group, .action-group {
-            background: rgba(15, 15, 25, 0.7); padding: 6px 10px; border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 8px; align-items: center;
+            background: rgba(15, 15, 25, 0.7); padding: 4px 8px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 6px; align-items: center;
         }
         .key-btn {
             background: linear-gradient(to bottom, #333, #222); color: #fff; border: 2px solid #555;
-            border-bottom: 4px solid #111; padding: 2px 6px; border-radius: 4px; font-weight: bold;
-            font-size: 0.7rem; min-width: 18px; text-align: center;
+            border-bottom: 3px solid #111; padding: 2px 6px; border-radius: 4px; font-weight: bold;
+            font-size: 0.7rem; min-width: 16px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        .key-label { font-size: 0.7rem; color: #ccc; letter-spacing: 0.5px; }
+        .key-label {
+            font-size: 0.7rem; color: #ccc; font-weight: 600; letter-spacing: 0.5px;
+        }
 
         /* --- Overlay de Rotación --- */
         #rotate-overlay {
@@ -194,6 +217,7 @@
         .overlay-btn {
             background: #ff5722; color: white; border: 2px solid #ffb74d; padding: 8px 16px;
             font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -208,56 +232,35 @@
     <h1>Gusty vs Hinchas</h1>
     <div class="game-container" id="gameContainer">
         
-        <!-- PANTALLA DE INICIO -->
+        <!-- Marcador de muertos HUD (NUEVO) -->
+        <div class="kill-counter-hud" id="killCounterHud">
+            <span class="total" id="hudTotalKills">TOTAL: 0</span><br/>
+            <span class="type" id="hudType1">Comunes: 0</span><br/>
+            <span class="type" id="hudType2">Medianos: 0</span><br/>
+            <span class="type" id="hudType3">Fuertes: 0</span><br/>
+            <span class="type" id="hudBoss">Jefes: 0</span>
+        </div>
+
+        <!-- PANTALLA DE INICIO CON RANKING -->
         <div id="start-screen" class="menu-screen">
             <h2>GUSTY VS HINCHAS</h2>
             <div class="subtitle">Edición Callejera</div>
-            <p>¡Defiende tu barrio! Usa las flechas o el joystick para moverte. A, S, W, D para golpear.</p>
-            <p style="font-size: 0.8rem; color: #777;">Se recomienda jugar en pantalla completa para mejor experiencia.</p>
+            <p>¡Defiende tu barrio! Usa el joystick para moverte. A, S, W, D para golpear.</p>
+            <p style="font-size: 0.8rem; color: #777;">Juega en pantalla completa.</p>
             <button class="menu-btn" id="start-game-btn">¡COMENZAR!</button>
             
-            <!-- Tabla de records en inicio -->
-            <div style="margin-top: 20px; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <h3 style="color: #ffb74d; margin: 0 0 5px 0; font-size: 0.9rem;">MEJORES 5 PUNTUACIONES</h3>
-                <table class="high-scores-table" id="startHighScoresList">
-                    <!-- Se llena por JS -->
-                </table>
+            <div style="margin-top: 15px; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                <h3 style="color: #ffb74d; margin: 0 0 5px 0; font-size: 0.85rem;">MEJORES 5 PUNTUACIONES</h3>
+                <table class="high-scores-table" id="startHighScoresList"></table>
             </div>
         </div>
 
-        <!-- PANTALLA DE GAME OVER (NUEVA) -->
+        <!-- PANTALLA DE GAME OVER CON MARCADOR FINAL -->
         <div id="gameover-screen" class="menu-screen" style="display: none;">
             <h2>¡GAME OVER!</h2>
-            <p style="font-size: 1.2rem; color: #fff;">Has caído en combate.</p>
-            <p>Puntuación Final (Oleada x 100): <strong id="finalScoreText" style="color:#ffb74d; font-size:1.4rem;">0</strong></p>
+            <p style="font-size: 1.2rem; color: #fff; margin-bottom: 5px;">Has caído en combate.</p>
+            <p>Puntuación Final: <strong id="finalScoreText" style="color:#ffb74d; font-size:1.4rem;">0</strong></p>
             
-            <div id="highscore-form" style="display: none;">
-                <p style="color: #fff; margin-bottom: 8px;">¡Nuevo Récord! Ingresa tu nombre (3 letras):</p>
-                <input type="text" id="playerNameInput" maxlength="3" placeholder="AAA" />
-                <br/>
-                <button class="menu-btn" id="saveScoreBtn">GUARDAR PUNTUACIÓN</button>
-            </div>
-
-            <div id="final-scores-list" style="display: none; width: 100%; flex-direction: column; align-items: center;">
-                <h3 style="color: #ffb74d; margin: 15px 0 5px 0; font-size: 0.9rem;">RANKING</h3>
-                <table class="high-scores-table" id="gameOverHighScoresList">
-                    <!-- Se llena por JS -->
-                </table>
-                <button class="menu-btn" id="restart-game-btn">VOLVER A JUGAR</button>
-            </div>
-        </div>
-
-        <canvas id="gameCanvas" width="800" height="450"></canvas>
-        
-        <div class="arcade-controls" id="keyboard-controls-ui">
-            <div class="pad-group">
-                <span class="key-label">Mover:</span>
-                <span class="key-btn">⬆</span>
-                <span class="key-btn">⬇</span>
-                <span class="key-btn">⬅</span>
-                <span class="key-btn">➡</span>
-            </div>
-            <div class="action-group">
-                <span class="key-label">Golpes:</span>
-                <span class="key-btn">A</span><span class="key-label">Piña</span>
-                <span class="key-btn">S</span><span class="key-label">Botell
+            <!-- Resumen de muertos (NUEVO) -->
+            <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem;">
+                <strong style="color: #fff;">RESUMEN DE HINCHAS BAJADOS</strong><br
